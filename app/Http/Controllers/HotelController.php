@@ -27,18 +27,8 @@ class HotelController extends Controller
     // ALL HOTELS
     public function hotels()
     {
-        $hotels = Hotel::orderBy('id', 'ASC')->paginate(10);
-        return [
-            'pagination' => [
-                'total'        => $hotels->total(),
-                'current_page' => $hotels->currentPage(),
-                'per_page'     => $hotels->perPage(),
-                'last_page'    => $hotels->lastPage(),
-                'from'         => $hotels->firstItem(),
-                'to'           => $hotels->lastItem(),
-            ],
-            'hotels'     => $hotels,
-        ];
+        $hotels = Hotel::orderBy('id', 'ASC')->paginate(15);
+        return view('admin.hoteles', compact('hotels'));
 
     }
 

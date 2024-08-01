@@ -23,4 +23,9 @@ class Hotel extends Model
     {
         return $this->hasMany('App\Models\Evaluation');
     }
+
+    public function questions()
+    {
+        return $this->belongsToMany('App\Models\Question', 'question_hotel');
+    }
 }

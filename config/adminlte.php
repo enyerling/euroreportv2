@@ -304,7 +304,7 @@ return [
         // Sidebar items:
         [
             'type' => 'sidebar-menu-search',
-            'text' => 'search',
+            'text' => 'Buscar',
         ],
         [
             'text' => 'blog',
@@ -313,39 +313,33 @@ return [
         ],
         [
             'text'        => 'Dashboard',
-            'url'         => 'admin/pages',
+            'url'         => 'admin/dashboard',
             'icon'        => 'far fa-fw fa-file',
         ],
         [
             'text'        => 'Hoteles',
-            'url'         => 'admin/pages',
-            'icon'        => 'far fa-fw fa-file',
+            'url'         => 'admin/hoteles',
+            'icon'        => 'far fa-fw fa-building',
         ],
         [
             'text'        => 'Usuarios',
-            'url'         => 'admin/pages',
+            'url'         => 'admin/users',
             'icon'        => 'fas fa-fw fa-user',
         ],
+       
+        ['header' => 'CONFIGURACION CUENTA'],
         [
-            'text'        => 'pages',
-            'url'         => 'admin/pages',
-            'icon'        => 'far fa-fw fa-file',
-            'label'       => 4,
-            'label_color' => 'success',
-        ],
-        ['header' => 'account_settings'],
-        [
-            'text' => 'profile',
+            'text' => 'Perfil',
             'url'  => 'admin/settings',
             'icon' => 'fas fa-fw fa-user',
         ],
         [
-            'text' => 'change_password',
+            'text' => 'Cambiar contraseña',
             'url'  => 'admin/settings',
             'icon' => 'fas fa-fw fa-lock',
         ],
         [
-            'text'    => 'multilevel',
+            'text'    => 'Niveles',
             'icon'    => 'fas fa-fw fa-share',
             'submenu' => [
                 [
@@ -382,22 +376,7 @@ return [
                 ],
             ],
         ],
-        ['header' => 'labels'],
-        [
-            'text'       => 'important',
-            'icon_color' => 'red',
-            'url'        => '#',
-        ],
-        [
-            'text'       => 'warning',
-            'icon_color' => 'yellow',
-            'url'        => '#',
-        ],
-        [
-            'text'       => 'information',
-            'icon_color' => 'cyan',
-            'url'        => '#',
-        ],
+       
     ],
 
     /*

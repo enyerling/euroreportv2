@@ -22,12 +22,12 @@
             <div class="card text-white bg-dark  mb-3" style="max-width: 18rem;">
                 <div class="card-body">
                     <img src="{{asset($hotel->image)}}" class="card-img-top" alt="hotel">
-                    <br>
+                    <br><br>
                     <h5 class="card-title">{{ $hotel->name }}</h5>
                 </div>
                 <div class="btn-group">
                     <button class="btn btn-sm btn-primary"><i class="fas fa-star"></i></button>
-                    <button class="btn btn-sm btn-danger"><i class="fas fa-edit"></i></button>
+                    <a href="" class="btn btn-sm btn-danger"><i class="fas fa-edit"></i></a>
                     <button class="btn btn-sm btn-info"><i class="fas fa-eye"></i></button>
                 </div>
             </div>
