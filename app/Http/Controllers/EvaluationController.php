@@ -9,6 +9,8 @@ use App\Models\System;
 use App\Models\HotelSystem;
 use App\Models\Question;
 use App\Models\QuestionsHotel;
+use App\Models\RecordEvaluation;
+use App\Models\Evaluation;
 use Illuminate\Support\Facades\Auth;
 
 class EvaluationController extends Controller
@@ -23,26 +25,6 @@ class EvaluationController extends Controller
         ));
         $audience->save();
     }
-
-    /*public function mostrarPreguntasEval($hotelId) {
-       
-            // Obtener los sistemas para el hotel dado según la cantidad
-            $hotelSystems = HotelSystem::where('hotel_id', $hotelId)->with('system')->get();
-        
-            // Inicializar un array para almacenar las preguntas seleccionadas
-            $preguntasSeleccionadas = [];
-        
-            // Obtener las preguntas seleccionadas para el hotel dado
-            $questionHotels = QuestionsHotel::where('hotel_id', $hotelId)->with('question.system')->get();
-        
-            // Obtener todas las preguntas disponibles para el hotel dado
-            $preguntasDisponibles = Question::whereHas('question_hotel', function ($query) use ($hotelId) {
-                $query->where('hotel_id', $hotelId);
-            })->with('system')->get();
-        
-            return view('admin.form_evaluacion', compact('hotelSystems', 'preguntasSeleccionadas', 'preguntasDisponibles', 'hotelId'));
-        }*/
-
         public function mostrarPreguntasEval($hotelId) {
             $hotelSystems = HotelSystem::where('hotel_id', $hotelId)->with('system')->get();
             
@@ -68,9 +50,45 @@ class EvaluationController extends Controller
                 }
             }
         
-            return view('admin.form_evaluacion', compact('preguntasPorSistema'));
+            return view('admin.form_evaluacion', compact('preguntasPorSistema','hotelId'));
         }
-
+        
+        public function guardarEvaluacion(Request $request) {
+            $hotelId = $request->input('hotel_id');
+            $estatus = 0; // Por defecto, 0 sin terminar
+        
+            // Crear un registro en la tabla RecordEvaluation
+            $recordEvaluation = RecordEvaluation::create([
+                'hotel_id' => $hotelId,
+                'estatus' => $estatus,
+            ]);
+        
+            // Obtener el id del registro recién creado
+            $recordId = $recordEvaluation->id;
+        
+            // Recorrer los sistemas y sus preguntas para guardarlas en la tabla Evaluation
+            foreach ($request->input('sistemas') as $sistema) {
+                $systemId = $sistema['system_id'];
+                $numeroHabitacion = $sistema['numero_habitacion'] ?? null;
+        
+                foreach ($sistema['preguntas'] as $pregunta) {
+                    $questionId = $pregunta['question_id'];
+                    $respuesta = $pregunta['respuesta'];
+                    $respuestaFecha = $pregunta['respuesta_fecha'] ?? null;
+        
+                    Evaluation::create([
+                        'record_evaluation_id' => $recordId,
+                        'system_id' => $systemId,
+                        'question_id' => $questionId,
+                        'answer' => $respuesta,
+                        'date' => $respuestaFecha,
+                        'room' => $numeroHabitacion,
+                    ]);
+                }
+            }
+        
+            return redirect()->route('admin.hoteles');
+        }
 }
     
 

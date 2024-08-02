@@ -16,7 +16,6 @@ class CreateRecordEvaluationTable extends Migration
         Schema::create('record_evaluation', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('hotel_id')->unsigned();
-            $table->date('date');
             $table->char('status', 1)->default('0');
             $table->timestamps();
 

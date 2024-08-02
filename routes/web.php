@@ -33,4 +33,5 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/question_config/{hotelId}', [HotelConfigController::class, 'showQuestionsForSystems'])->name('admin.question_config');
     Route::post('/admin/hoteles', [HotelConfigController::class, 'guardarPreguntas'])->name('guardar_preguntas');
     Route::get('/admin/form_evaluacion/{hotelId}', [EvaluationController::class, 'mostrarPreguntasEval'])->name('admin.motrar_evaluacion');
+    Route::post('/admin/dashboard', [EvaluationController::class, 'guardarEvaluacion'])->name('admin.guardar_evaluacion');
 });
