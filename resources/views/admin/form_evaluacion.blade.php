@@ -13,35 +13,46 @@
 
 @section('content')
 <div class="container">
-    @foreach($hotelSystems as $hotelSystem)
-        @for ($i = 0; $i < $hotelSystem->cantidad; $i++)
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">Sistema: {{ $hotelSystem->system->nombre }}</h5>
-                    <!-- Aquí puedes mostrar más información sobre el sistema si es necesario -->
-                </div>
+    <br>
+    <center><h2>Evaluación</h2></center>
+    @foreach ($preguntasPorSistema as $item)
+        <div class="card mt-3">
+            <div class="card-header">
+                <h1 class="card-title text-primary"><b>SISTEMA: {{ $item['system'] }}</b></h1>
             </div>
-        @endfor
-    @endforeach
-    <h2>Preguntas Disponibles</h2>
-    @foreach($preguntasDisponibles as $preguntaDisponible)
-        <div class="card mb-3">
             <div class="card-body">
-                <h5 class="card-title">Pregunta: {{ $preguntaDisponible->name }}</h5>
-                <p class="card-text">Sistema: {{ $preguntaDisponible->system->nombre }}</p>
-                <!-- Puedes incluir un checkbox para seleccionar esta pregunta si es necesario -->
+                <form>
+                    @if ($item['system_id'] == 12)
+                        <div class="form-group">
+                            <label for="numero_habitacion">Número de Habitación</label>
+                            <input type="text" class="form-control" id="valor" name="numero_habitacion">
+                        </div>
+                    @endif
+                    @foreach ($item['preguntas'] as $pregunta)
+                        <div class="form-group">
+                            <label for="pregunta_{{ $pregunta['id'] }}">{{ $pregunta['name'] }}</label>
+                            @if ($pregunta['type'] === 'Cerrada' && $pregunta['answer'] === null)
+                                <select class="form-control" id="answer" name="respuesta_{{ $pregunta['id'] }}">
+                                    <option value="si">Sí</option>
+                                    <option value="no">No</option>
+                                </select>
+                            @elseif ($pregunta['type'] === 'Cerrada' && $pregunta['answer'] === 'Fecha')
+                                <select class="form-control" id="answer" name="respuesta_{{ $pregunta['id'] }}">
+                                    <option value="si">Sí</option>
+                                    <option value="no">No</option>
+                                </select>
+                                <br>
+                                <input type="date" class="form-control" id="fecha" name="respuesta_fecha_{{ $pregunta['id'] }}">
+                            @endif
+                        </div>
+                    @endforeach
+                    
+                </form>
             </div>
         </div>
     @endforeach
-
-    <form action="" method="POST">
-        @csrf
-        <input type="hidden" name="hotel_id" value="{{ $hotelId }}">
-        <!-- Aquí puedes agregar campos adicionales según sea necesario para guardar la configuración -->
-
-        <button type="submit" class="btn btn-primary">Guardar Configuración</button>
-    </form>
 </div>
+
 @endsection
 
 @section('js')
