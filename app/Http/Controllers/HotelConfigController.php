@@ -77,15 +77,21 @@ class HotelConfigController extends Controller
         // Obtener las preguntas seleccionadas desde el formulario
         $selectedQuestions = $request->input('selected_questions');
 
-        // Guardar las preguntas seleccionadas en la tabla QuestionsHotel
-        foreach ($selectedQuestions as $questionId) {
-            $questionsHotel = new QuestionsHotel();
-            $questionsHotel->hotel_id = $hotelId;
-            $questionsHotel->question_id = $questionId;
-            $questionsHotel->save();
+        // Verificar si $selectedQuestions no es nulo y es un array
+        if ($selectedQuestions && is_array($selectedQuestions)) {
+            foreach ($selectedQuestions as $questionId => $questionData) {
+                // Verificar si 'question_id' y 'cantidad' existen en $questionData
+                if (isset($questionData['question_id'], $questionData['cantidad'])) {
+                    $questionsHotel = new QuestionsHotel();
+                    $questionsHotel->hotel_id = $hotelId;
+                    $questionsHotel->question_id = $questionData['question_id'];
+                    $questionsHotel->cantidad = $questionData['cantidad'];
+                    $questionsHotel->save();
+                }
+            }
         }
 
         // Redirigir o mostrar un mensaje de éxito
-        return redirect()->route('admin.hoteles');
+        return redirect()->route('admin.dashboard')->with('status', 'success');
     }
 }

@@ -12,6 +12,11 @@ class RecordEvaluation extends Model
         return $this->belongsTo('App\Model\Hotel');
     }
 
+    public function evaluations()
+    {
+        return $this->hasMany('App\Models\Evaluation');
+    }
+
     public function images()
     {
         return $this->hasMany('App\EvaluationImage');

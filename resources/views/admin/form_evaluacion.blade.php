@@ -35,32 +35,39 @@
                     @endif
 
                     @foreach ($item['preguntas'] as $preguntaIndex => $pregunta)
-                        <div class="form-group">
-                            <label for="pregunta_{{ $pregunta['id'] }}">{{ $pregunta['name'] }}</label>
-                            <input type="hidden" name="sistemas[{{ $index }}][preguntas][{{ $preguntaIndex }}][question_id]" value="{{ $pregunta['id'] }}">
-                            
-                            @if ($pregunta['type'] === 'Cerrada' && $pregunta['answer'] === null)
-                                <select class="form-control" id="respuesta_{{ $pregunta['id'] }}" name="sistemas[{{ $index }}][preguntas][{{ $preguntaIndex }}][respuesta]">
-                                    <option value="si">Sí</option>
-                                    <option value="no">No</option>
-                                </select>
-                            @elseif ($pregunta['type'] === 'Cerrada' && $pregunta['answer'] === 'Fecha')
-                                <select class="form-control" id="respuesta_{{ $pregunta['id'] }}" name="sistemas[{{ $index }}][preguntas][{{ $preguntaIndex }}][respuesta]">
-                                    <option value="si">Sí</option>
-                                    <option value="no">No</option>
-                                </select>
-                                <br>
-                                <input type="date" class="form-control" id="fecha_{{ $pregunta['id'] }}" name="sistemas[{{ $index }}][preguntas][{{ $preguntaIndex }}][respuesta_fecha]">
-                            @endif
-                        </div>
+                        @for ($i = 1; $i <= $pregunta['cantidad']; $i++)
+                            <div class="form-group">
+                                <label for="pregunta_{{ $index }}_{{ $pregunta['id'] }}_{{ $i }}">{{ $pregunta['name'] }} {{ $i }}</label>
+                                <input type="hidden" name="sistemas[{{ $index }}][preguntas][{{ $pregunta['id'] }}][pregunta_id]" value="{{ $pregunta['id'] }}">
+                                
+                                @if ($pregunta['type'] === 'Cerrada')
+                                    @if ($pregunta['answer'] === null)
+                                        <select class="form-control" id="respuesta_{{ $index }}_{{ $pregunta['id'] }}_{{ $i }}" name="sistemas[{{ $index }}][preguntas][{{ $pregunta['id'] }}][respuesta]">
+                                            <option value=" ">Por responder</option>
+                                            <option value="si">Sí</option>
+                                            <option value="no">No</option>
+                                        </select>
+                                    @elseif ($pregunta['answer'] === 'Fecha')
+                                        <select class="form-control" id="respuesta_{{ $index }}_{{ $pregunta['id'] }}_{{ $i }}" name="sistemas[{{ $index }}][preguntas][{{ $pregunta['id'] }}][respuesta]">
+                                            <option value=" ">Por responder</option>
+                                            <option value="si">Sí</option>
+                                            <option value="no">No</option>
+                                        </select>
+                                        <br>
+                                        <input type="date" class="form-control" id="fecha_{{ $index }}_{{ $pregunta['id'] }}_{{ $i }}" name="sistemas[{{ $index }}][preguntas][{{ $pregunta['id'] }}][respuesta_fecha]">
+                                    @endif
+                                @endif
+                            </div>
+                        @endfor
                     @endforeach
                 </div>
             </div>
         @endforeach
-        
+
         <div class="mt-3">
             <button type="submit" class="btn btn-primary">Guardar Evaluación</button>
         </div>
+
     </form>
 </div>
 

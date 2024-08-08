@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Audience;
 use App\Models\Hotel;
+use App\Models\RecordEvaluation;
 use Illuminate\Support\Facades\Auth;
 use Intervention\Image\ImageManagerStatic as Image;
 
@@ -27,7 +28,7 @@ class HotelController extends Controller
     // ALL HOTELS
     public function hotels()
     {
-        $hotels = Hotel::orderBy('id', 'ASC')->paginate(15);
+        $hotels = Hotel::orderBy('id', 'ASC')->paginate(10);
         return view('admin.hoteles', compact('hotels'));
 
     }
@@ -53,8 +54,18 @@ class HotelController extends Controller
 
     public function showAll()
     {
-        $hotels = Hotel::all();// Obtener todos los hoteles
-        return view('admin.dashboard', compact('hotels'));
+        $hotels = Hotel::all(); 
+        $hotelEvaluations = [];
+
+        foreach ($hotels as $hotel) {
+            $latestRecord = RecordEvaluation::where('hotel_id', $hotel->id)
+                ->orderBy('created_at', 'desc')
+                ->first();
+
+            $hotelEvaluations[$hotel->id] = $latestRecord ? $latestRecord->created_at->format('d-m-Y') : 'Sin evaluaciones';
+        }
+
+        return view('admin.dashboard', compact('hotels', 'hotelEvaluations'));
     }
 
     public function update(Request $request, Hotel $hotel)

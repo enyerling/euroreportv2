@@ -8,7 +8,7 @@ class Evaluation extends Model
 {
     //
     protected $fillable = [
-        'id', 'record_evaluation_id', 'system_id', 'question_id', 'answer','date', 'correct', 'room'
+        'id', 'record_evaluation_id', 'system_id', 'question_id', 'answer','date', 'room'
     ];
 
     public function question()
@@ -20,5 +20,11 @@ class Evaluation extends Model
     {
         return $this->belongsTo('App\Models\ObservationAdds');
     }
+    public function system()
+    {
+        return $this->belongsTo('App\Models\System');
+    }
+
+
 }
 

@@ -18,7 +18,7 @@ class CreateEvaluationTable extends Migration
             $table->integer('record_evaluation_id')->unsigned();
             $table->integer('system_id')->unsigned();
             $table->integer('question_id')->unsigned();
-            $table->string('answer');
+            $table->string('answer')->nullable();
             $table->date('date')->nullable();
             $table->integer('room')->nullable();
             $table->timestamps();

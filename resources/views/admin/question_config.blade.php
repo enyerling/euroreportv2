@@ -14,7 +14,7 @@
 @section('content')
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-6">
+        <div class="col-md-10">
             <div class="box box-primary">
                 <div class="box-header with-border">
                   <center>
@@ -40,8 +40,11 @@
                                             <li class="list-group-item">
                                                 <div class="d-flex justify-content-between align-items-center">
                                                     <div class="form-check">
-                                                        <input class="form-check-input" type="checkbox" id="question_{{ $question->id }}" name="selected_questions[]" value="{{ $question->id }}">
+                                                        <input class="form-check-input" type="checkbox" id="question_{{ $question->id }}" name="selected_questions[{{ $question->id }}][question_id]" value="{{ $question->id }}">
                                                         <label class="form-check-label" for="question_{{ $question->id }}">{{ $question->name }}</label>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <input type="number" class="form-control" name="selected_questions[{{ $question->id }}][cantidad]" value="1" min="1" style="width: 60px;">
                                                     </div>
                                                 </div>
                                             </li>
@@ -52,7 +55,6 @@
                         @endforeach
                     </div>
                 </div>
-                <!-- /.box-body -->
                 <br>
                 <div class="box-footer">
                     <center>
@@ -60,7 +62,6 @@
                     </center>
                 </div>
                 <br>
-                <!-- /.box-footer -->
             </form>
             </div>
         </div>

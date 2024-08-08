@@ -8,36 +8,49 @@
 
 @section('content_header')
     <div class="d-flex justify-content-between align-items-center">
-        <h1>Hoteles</h1>
+        <h2>Hoteles</h2>
         <button class="btn btn-primary">Agregar hotel</button>
     </div>
 @endsection
 
 @section('content')
-<div class="container">
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Nombre</th>
-                <th>Gerente</th>
-                <th>Configurar evaluacion</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($hotels as $hotel)
-            <tr>
-                <td>{{ $hotel->name }}</td>
-                <td>{{ $hotel->manager }}</td>
-                <td>
-                <a class="btn btn-secondary"  href="{{ route('hotel_config', ['hotelId' => $hotel->id]) }}" > <i class="fas fa-cog"></i>Configuracion</a>  
-                </td>
-            </tr>
-            @endforeach
-        </tbody>
-        
-    </table>
-    
+<div class="container mt-2">
+    <div class="table-responsive">
+        <table class="table table-striped table-hover table-bordered">
+            <thead class="thead-dark">
+                <tr class="text-center">
+                    <th>NOMBRE</th>
+                    <th>GERENTE</th>
+                    <th>OPERACIONES</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($hotels as $hotel)
+                <tr>
+                    <td>{{ $hotel->name }}</td>
+                    <td>{{ $hotel->manager }}</td>
+                    <td class="text-center">
+                        <a class="btn btn-info" href="{{ route('hotel_config', ['hotelId' => $hotel->id]) }}">
+                            <i class="fa fa-cog"></i>
+                        </a> 
+                        <a class="btn btn-warning" href="">
+                            <i class="fa fa-edit"></i> 
+                        </a> 
+                        <a class="btn btn-danger" href="#">
+                        <i class="fa fa-trash"></i> 
+                        </a>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+    {{-- Paginación --}}
+    <div class="d-flex justify-content-center">
+        {{ $hotels->links('vendor.adminlte.pagination') }}
+    </div>
 </div>
+
 
 @endsection
 

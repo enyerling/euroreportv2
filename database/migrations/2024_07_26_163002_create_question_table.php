@@ -20,6 +20,7 @@ class CreateQuestionTable extends Migration
             $table->string('answer')->nullable()->nullable();
             $table->integer('system_id')->unsigned();
             $table->integer('accessorie_id')->unsigned()->nullable();
+            $table->string('expected_value',2);
             $table->timestamps();
 
             $table->foreign('system_id')->references('id')->on('systems')->onDelete('cascade');

@@ -28,4 +28,11 @@ class Hotel extends Model
     {
         return $this->belongsToMany('App\Models\Question', 'question_hotel');
     }
+
+    public function recordEvaluations()
+    {
+        return $this->hasMany('App\Models\RecordEvaluation');
+    }
+
+
 }

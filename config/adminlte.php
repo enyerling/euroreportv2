@@ -312,14 +312,19 @@ return [
             'can'  => 'manage-blog',
         ],
         [
-            'text'        => 'Dashboard',
+            'text'        => 'Inicio',
             'url'         => 'admin/dashboard',
-            'icon'        => 'far fa-fw fa-file',
+            'icon'        => 'far fa fa-table',
         ],
         [
             'text'        => 'Hoteles',
             'url'         => 'admin/hoteles',
             'icon'        => 'far fa-fw fa-building',
+        ],
+        [
+            'text'        => 'Evaluaciones',
+            'url'         => 'admin/evaluaciones',
+            'icon'        => 'fas fa-fw fa-user',
         ],
         [
             'text'        => 'Usuarios',

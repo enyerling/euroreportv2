@@ -27,11 +27,19 @@ Route::get('/', function(){
 Route::middleware(['auth'])->group(function () {
     Route::get('/admin/dashboard', [HotelController::class, 'showAll'])->name('admin.dashboard');
     Route::get('/admin/hoteles', [HotelController::class, 'hotels'])->name('admin.hoteles');
+
+    //Configurar sistemas
     Route::get('/admin/eval_config/{hotelId}', [HotelConfigController::class, 'showConfigForm'])->name('hotel_config');
-    
     Route::post('/admin/question_config', [HotelConfigController::class, 'guardarConfiguracion'])->name('admin.guardar_configuracion');
+
+    //Configurar preguntas
     Route::get('/admin/question_config/{hotelId}', [HotelConfigController::class, 'showQuestionsForSystems'])->name('admin.question_config');
-    Route::post('/admin/hoteles', [HotelConfigController::class, 'guardarPreguntas'])->name('guardar_preguntas');
+    Route::post('/admin/guardar_preguntas', [HotelConfigController::class, 'guardarPreguntas'])->name('guardar_preguntas');
+
+    //Evaluacion
     Route::get('/admin/form_evaluacion/{hotelId}', [EvaluationController::class, 'mostrarPreguntasEval'])->name('admin.motrar_evaluacion');
-    Route::post('/admin/dashboard', [EvaluationController::class, 'guardarEvaluacion'])->name('admin.guardar_evaluacion');
+    Route::post('/admin/guardar_evaluacion', [EvaluationController::class, 'guardarEvaluacion'])->name('admin.guardar_evaluacion');
+    Route::get('/admin/resultEvaluation/{recordId}',[EvaluationController::class, 'calcularPuntaje'])->name('admin.resultEvaluation');
+
+    Route::get('/admin/evaluationsCompleted/{hotelId}',[EvaluationController::class, 'showEvalCompleted'])->name('evaluaciones_completas');
 });
