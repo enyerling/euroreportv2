@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-class Accessorie extends Model
+class Accessories extends Model
 {
     //
     protected $fillable = ['id', 'name'];
 
     public function questions()
     {
-        return $this->hasMany('App\Models\Question');
+        return $this->hasMany('App\Models\Question', 'accessorie_id');
     }
 }

@@ -21,6 +21,7 @@ class CreateEvaluationTable extends Migration
             $table->string('answer')->nullable();
             $table->date('date')->nullable();
             $table->integer('room')->nullable();
+            $table->integer('instance')->nullable();
             $table->timestamps();
             $table->foreign('record_evaluation_id')->references('id')->on('record_evaluation')->onDelete('cascade');
             $table->foreign('system_id')->references('id')->on('systems')->onDelete('cascade');

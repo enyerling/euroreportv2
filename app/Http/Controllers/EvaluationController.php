@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Accessories;
 use App\Models\Audience;
 use App\Models\Hotel;
 use App\Models\System;
@@ -25,7 +26,6 @@ class EvaluationController extends Controller
         ));
         $audience->save();
     }
-
     public function mostrarPreguntasEval($hotelId) {
         // Obtener los sistemas asociados con el hotel
         $hotelSystems = HotelSystem::where('hotel_id', $hotelId)->with('system')->get();
@@ -42,6 +42,7 @@ class EvaluationController extends Controller
                 ->whereHas('question_hotel', function ($query) use ($hotelId) {
                     $query->where('hotel_id', $hotelId);
                 })
+                ->with('accessorie') // Eager load the accessorie relationship
                 ->get();
     
             // Repetir el sistema y las preguntas según la cantidad especificada
@@ -49,18 +50,22 @@ class EvaluationController extends Controller
                 $preguntasPorSistema[] = [
                     'system' => $system->name . ' ' . $i,
                     'system_id' => $system->id,
+                    'instance' => $i, 
                     'preguntas' => $questionsForSystem->map(function ($question) use ($hotelId) {
                         $cantidad = $question->question_hotel
                             ->where('hotel_id', $hotelId)
                             ->first()
                             ->cantidad;
-                        
+    
+                        $accessorieName = $question->accessorie ? $question->accessorie->name : '';
+    
                         return [
                             'id' => $question->id,
                             'name' => $question->name,
                             'type' => $question->type,
                             'answer' => $question->answer,
-                            'cantidad' => $cantidad
+                            'cantidad' => $cantidad,
+                            'accessorie_name' => $accessorieName
                         ];
                     })->toArray()
                 ];
@@ -69,59 +74,62 @@ class EvaluationController extends Controller
     
         return view('admin.form_evaluacion', compact('preguntasPorSistema', 'hotelId'));
     }
+    
         
     public function guardarEvaluacion(Request $request) {
-       
         $hotelId = $request->input('hotel_id');
-        $status = $request->input('status',1);
-        $faltanPreguntas = false;
-
+        $status = $request->input('status', 1);
+    
+        // Crear el registro de evaluación
         $recordEvaluation = RecordEvaluation::create([
             'hotel_id' => $hotelId,
             'status' => $status,
         ]);
-        
+    
         $recordId = $recordEvaluation->id;
     
-        foreach ($request->input('sistemas') as $sistema) {
+        foreach ($request->input('sistemas') as $sistemaIndex => $sistema) {
             $systemId = $sistema['system_id'];
-            $numeroHabitacion = $sistema['numero_habitacion'] ?? null;
+            $instance = $sistema['instance'];
+            $preguntas = $sistema['preguntas'];
+
+            $isComplete = true;
     
-            foreach ($sistema['preguntas'] as $pregunta) {
-                $questionId = $pregunta['pregunta_id'];
+            foreach ($preguntas as $preguntaId => $pregunta) {
+                $questionId = $pregunta['pregunta_id'] ?? null;
                 $respuesta = $pregunta['respuesta'] ?? null;
                 $respuestaFecha = $pregunta['respuesta_fecha'] ?? null;
-
+                $instancePregunta = $pregunta['instance'] ?? $instance; // Usar la instancia enviada en el formulario o la del sistema
+    
+                // Verificar que se haya enviado una respuesta válida
                 if (is_null($respuesta) || $respuesta === '') {
                     $status = '0'; // Si alguna respuesta está vacía, el estado es incompleto
-                    $faltanPreguntas = true;
+                    $isComplete = false;
                 }
     
                 if ($questionId) {
-                    
+                    // Guardar la evaluación
                     Evaluation::create([
                         'record_evaluation_id' => $recordId,
                         'system_id' => $systemId,
                         'question_id' => $questionId,
                         'answer' => $respuesta,
                         'date' => $respuestaFecha,
-                        'room' => $numeroHabitacion,
+                        'room' => $sistema['numero_habitacion'] ?? null,
+                        'instance' => $instancePregunta, // Usar la instancia correcta
                     ]);
                 }
             }
         }
-        
+    
         $recordEvaluation->status = $status;
         $recordEvaluation->save();
-
-        if ($faltanPreguntas) {
-            return redirect()->route('admin.dashboard')
-                ->with('warning', 'Evaluación guardada, pero faltaron preguntas por responder.');
-        } else {
-            return redirect()->route('admin.dashboard')
-                ->with('success', 'Evaluación guardada correctamente.');
-        }
+    
+        return response()->json([
+            'faltan_preguntas' => !$isComplete
+        ]);
     }
+    
 
     public function calcularPuntaje($recordId) {
         
@@ -164,7 +172,7 @@ class EvaluationController extends Controller
             $totalScore += $systemScore['score'];
         }
     
-        return view('admin.resultEvaluation', compact('scoresBySystem', 'totalScore'));
+        return view('admin.resultEvaluation', ['scoresBySystem' => $scoresBySystem,'totalScore' => $totalScore, 'recordId' => $recordId ]);
     }
 
     public function showEvalCompleted(Request $request,$hotelId)
@@ -193,8 +201,132 @@ class EvaluationController extends Controller
         return view('admin.eval_completed', compact('hotel', 'completedEvaluations'));
     }
 
+    public function showEvaluation($recordId)
+    {
+        $evaluations = Evaluation::where('record_evaluation_id', $recordId)
+        ->with(['question', 'system'])
+        ->get();
+
+        $recordEvaluation = RecordEvaluation::find($recordId);
+        $hotel = $recordEvaluation->hotel;
+
+        $hotelName = $hotel->name;
+        $hotelmanager= $hotel->manager;
+
+        return view('admin.show_evaluation', ['evaluations' => $evaluations, 'hotelName' => $hotelName,'managerName' => $hotelmanager]);
+    }
+
+    public function editarEvaluacion($recordEvaluationId)
+    {
+        // Obtener el registro de evaluación y las respuestas asociadas
+        $recordEvaluation = RecordEvaluation::findOrFail($recordEvaluationId);
+        $hotelId = $recordEvaluation->hotel_id;
     
-        
+        // Obtener los sistemas y las preguntas asociadas con el hotel
+        $hotelSystems = HotelSystem::where('hotel_id', $hotelId)->with('system')->get();
+    
+        $preguntasPorSistema = [];
+        foreach ($hotelSystems as $hotelSystem) {
+            $system = $hotelSystem->system;
+            $systemCantidad = $hotelSystem->cant;
+    
+            // Obtener las preguntas asociadas con el sistema para el hotel
+            $questionsForSystem = Question::where('system_id', $system->id)
+                ->whereHas('question_hotel', function ($query) use ($hotelId) {
+                    $query->where('hotel_id', $hotelId);
+                })
+                ->with('accessorie')
+                ->get();
+    
+            for ($i = 1; $i <= $systemCantidad; $i++) {
+                $preguntasPorSistema[] = [
+                    'system' => $system->name . ' ' . $i,
+                    'system_id' => $system->id,
+                    'instance' => $i,
+                    'preguntas' => $questionsForSystem->map(function ($question) use ($hotelId, $recordEvaluationId, $i) {
+                        $cantidad = $question->question_hotel
+                            ->where('hotel_id', $hotelId)
+                            ->first()
+                            ->cantidad;
+    
+                        // Obtener las respuestas para la instancia actual
+                        $answer = Evaluation::where('record_evaluation_id', $recordEvaluationId)
+                            ->where('system_id', $question->system_id)
+                            ->where('question_id', $question->id)
+                            ->where('instance', $i)
+                            ->first();
+                        
+                        $accessorieName = $question->accessorie ? $question->accessorie->name : '';
+    
+                        return [
+                            'id' => $question->id,
+                            'name' => $question->name,
+                            'type' => $question->type,
+                            'answer' => $answer ? $answer->answer : null,
+                            'respuesta_fecha' => $answer ? $answer->date : null,
+                            'room' => $answer ? $answer->room : null,
+                            'cantidad' => $cantidad,
+                            'accessorie_name' => $accessorieName,
+                        ];
+                    })->toArray()
+                ];
+            }
+        }
+    
+        return view('admin.eval_edit', compact('preguntasPorSistema', 'recordEvaluation', 'hotelId'));
+    }
+     
+    public function actualizarEvaluacion(Request $request)
+    {
+        $recordEvaluationId = $request->input('record_evaluation_id');
+        $hotelId = $request->input('hotel_id');
+
+        $recordEvaluation = RecordEvaluation::findOrFail($recordEvaluationId);
+        $recordEvaluation->status = $request->input('status', $recordEvaluation->status);
+        $recordEvaluation->save();
+
+        $hotelSystems = HotelSystem::where('hotel_id', $hotelId)->get()->keyBy('system_id');
+        $isComplete = true;
+
+        foreach ($request->input('sistemas') as $sistemaIndex => $sistema) {
+            $systemId = $sistema['system_id'];
+            $cantidad = $hotelSystems[$systemId]->cant;
+            $numeroHabitacion = $sistema['numero_habitacion'] ?? null;
+
+            foreach ($sistema['preguntas'] as $preguntaId => $pregunta) {
+                $respuesta = $pregunta['respuesta'] ?? null;
+                $respuestaFecha = $pregunta['respuesta_fecha'] ?? null;
+                $instance = $sistema['instance'];
+
+                if (is_null($respuesta) || $respuesta === '') {
+                    $isComplete = false;
+                }
+
+                Evaluation::updateOrCreate(
+                    [
+                        'record_evaluation_id' => $recordEvaluationId,
+                        'system_id' => $systemId,
+                        'question_id' => $preguntaId,
+                        'instance' => $instance
+                    ],
+                    [
+                        'answer' => $respuesta,
+                        'date' => $respuestaFecha,
+                        'room' => $numeroHabitacion
+
+                    ]
+                );
+            }
+        }
+        $recordEvaluation->status = $isComplete ? 1 : 0;
+        $recordEvaluation->save();
+
+        return response()->json([
+            'faltan_preguntas' => !$isComplete
+        ]);
+    }
+
+
 }
     
 

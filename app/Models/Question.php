@@ -10,7 +10,7 @@ class Question extends Model
     
     public function accessorie()
     {
-        return $this->belongsTo('App\Models\Accessorie');
+        return $this->belongsTo('App\Models\Accessories', 'accessorie_id');
     }
 
     public function system()

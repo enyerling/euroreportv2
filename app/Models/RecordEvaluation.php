@@ -9,7 +9,7 @@ class RecordEvaluation extends Model
 
     public function hotel()
     {
-        return $this->belongsTo('App\Model\Hotel');
+        return $this->belongsTo('App\Models\Hotel');
     }
 
     public function evaluations()
@@ -19,7 +19,7 @@ class RecordEvaluation extends Model
 
     public function images()
     {
-        return $this->hasMany('App\EvaluationImage');
+        return $this->hasMany('App\Models\Images');
     }
 }
 

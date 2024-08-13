@@ -35,21 +35,25 @@ class HotelController extends Controller
 
     public function store(Request $request)
     {
-        $this->validate($request, [
-            'name'    => 'required|min:5|unique:hotels',
-            'manager' => 'required|min:5',
-            'image'   => 'required|image64:jpeg,jpg,png',
+        $request->validate([
+            'hotelName' => 'required|string|max:255',
+            'managerName' => 'required|string|max:255',
+            'hotelImage' => 'required|image|mimes:jpeg,png,jpg|max:2048|dimensions:width=1156,height=768',
+        ], [
+            'hotelImage.dimensions' => 'La imagen debe tener exactamente 1156 píxeles de ancho y 768 píxeles de alto.'
         ]);
-
-        $hotel = new Hotel;
-
-        $hotel->name = $request->name;
-        $hotel->manager = $request->manager;
-        $hotel->image = $request->image;
-
+    
+        $imageName = time() . '.' . $request->hotelImage->extension();
+    
+        $request->hotelImage->move(public_path('vendor/adminlte/dist/img'), $imageName);
+    
+        $hotel = new Hotel();
+        $hotel->name = $request->hotelName;
+        $hotel->manager = $request->managerName;
+        $hotel->image = 'vendor/adminlte/dist/img/' . $imageName; // Guardar la ruta de la imagen
         $hotel->save();
 
-        return;
+        return redirect()->route('admin.hoteles')->with('success', 'Hotel agregado exitosamente.');
     }
 
     public function showAll()
@@ -68,21 +72,46 @@ class HotelController extends Controller
         return view('admin.dashboard', compact('hotels', 'hotelEvaluations'));
     }
 
-    public function update(Request $request, Hotel $hotel)
+    public function update(Request $request, $id)
     {
-        $hotel->name    = $request->name;
-        $hotel->manager = $request->manager;
-        if ($request->image != null){
-            $hotel->image   = $request->get('image');
+        // Validar los campos del formulario
+        $request->validate([
+            'hotelName' => 'required|string|max:255',
+            'managerName' => 'required|string|max:255',
+            'hotelImage' => 'nullable|image|mimes:jpeg,png,jpg|max:2048|dimensions:width=1156,height=768',
+        ], [
+            'hotelImage.dimensions' => 'La imagen debe tener exactamente 1156 píxeles de ancho y 768 píxeles de alto.'
+        ]);
+
+        // Obtener el hotel a actualizar
+        $hotel = Hotel::findOrFail($id);
+        $hotel->name = $request->hotelName;
+        $hotel->manager = $request->managerName;
+
+        // Si se sube una nueva imagen
+        if ($request->hasFile('hotelImage')) {
+            // Eliminar la imagen anterior si existe
+            if ($hotel->image && file_exists(public_path($hotel->image))) {
+                unlink(public_path($hotel->image));
+            }
+
+            // Guardar la nueva imagen
+            $imageName = time() . '.' . $request->hotelImage->extension();
+            $request->hotelImage->move(public_path('vendor/adminlte/dist/img'), $imageName);
+            $hotel->image = 'vendor/adminlte/dist/img/' . $imageName;
         }
+
         $hotel->save();
 
-        return;
+        // Redirigir con un mensaje de éxito
+        return redirect()->route('admin.hoteles')->with('success', 'Hotel actualizado exitosamente.');
     }
 
-    public function destroy(Hotel $hotel)
+    public function destroy($id)
     {
+        $hotel = Hotel::findOrFail($id);
         $hotel->delete();
-        return;
+
+       return redirect()->route('admin.hoteles');
     }
 }

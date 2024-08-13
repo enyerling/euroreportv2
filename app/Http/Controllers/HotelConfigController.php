@@ -9,6 +9,7 @@ use App\Models\System;
 use App\Models\HotelSystem;
 use App\Models\Question;
 use App\Models\QuestionsHotel;
+use App\Models\Accessories;
 use Illuminate\Support\Facades\Auth;
 
 
@@ -51,22 +52,40 @@ class HotelConfigController extends Controller
                 ]);
             }
         
-            return redirect()->route('admin.question_config', ['hotelId' => $hotelId]);
-        } else {
-            return redirect()->route('admin.hoteles')->with('error', 'No se han recibido datos de sistemas para configurar');
-        }
+            return response()->json(['success' => true, 'message' => 'Configuración guardada con éxito'], 200);
+        } 
     }
 
     public function showQuestionsForSystems($hotelId) {
-        $hotelSystems = HotelSystem::where('hotel_id', $hotelId)->with('system.questions')->where('cant', '>', 0)->get();
+        $hotelSystems = HotelSystem::where('hotel_id', $hotelId)
+            ->with('system.questions')
+            ->where('cant', '>', 0)
+            ->get();
     
-        // Recuperar todos los IDs de sistemas guardados para el hotel
-        $systemIds = $hotelSystems->pluck('system_id')->toArray();
+        // Inicializar un array para almacenar las preguntas agrupadas
+        $questionsGrouped = [];
     
-        // Recuperar las preguntas asociadas a los sistemas guardados
-        $questions = Question::whereIn('system_id', $systemIds)->get();
+        foreach ($hotelSystems as $hotelSystem) {
+            if ($hotelSystem->system) {
+                if ($hotelSystem->system->id === 12) { // Asegúrate de que el ID de habitaciones es el correcto
+                    $questionsGrouped[$hotelSystem->system->id] = Question::where('system_id', $hotelSystem->system->id)
+                        ->orderBy('accessorie_id')
+                        ->get()
+                        ->groupBy('accessorie_id');
+                } else {
+                    $questionsGrouped[$hotelSystem->system->id] = $hotelSystem->system->questions;
+                }
+            }
+        }
     
-        return view('admin.question_config', ['hotelId' => $hotelId,'hotelSystems' => $hotelSystems, 'questions' => $questions]);
+        $accessories = Accessories::all()->pluck('name', 'id')->toArray();
+    
+        return view('admin.question_config', [
+            'hotelId' => $hotelId,
+            'hotelSystems' => $hotelSystems,
+            'questionsGrouped' => $questionsGrouped,
+            'accessories' => $accessories
+        ]);
     }
 
     public function guardarPreguntas(Request $request)
@@ -92,6 +111,6 @@ class HotelConfigController extends Controller
         }
 
         // Redirigir o mostrar un mensaje de éxito
-        return redirect()->route('admin.dashboard')->with('status', 'success');
+        return response()->json(['success' => true, 'message' => 'Configuración guardada con éxito'], 200);
     }
 }

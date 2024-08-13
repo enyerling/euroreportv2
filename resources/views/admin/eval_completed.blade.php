@@ -14,12 +14,12 @@
     <div class="container">
         <div class="row justify-content-center mb-4">
             <div class="col-md-12">
-                <form action="{{ route('evaluaciones_completas', ['hotelId' => $hotel->id]) }}" method="GET">
+                <form action="{{ route('admin.evaluacioneshotel', ['hotelId' => $hotel->id]) }}" method="GET">
                     <div class="form-row align-items-end">
                         <div class="form-group col-md-3">
                             <label for="status">Estado:</label>
                             <select name="status" id="status" class="form-control">
-                                <option value="" {{ request('status') === 'todos' ? 'selected' : '' }}>Todos</option>
+                                <option value="" {{ request('status') === 'todos' ? 'selected' : '' }}>Todas</option>
                                 <option value="1" {{ request('status') === '1' ? 'selected' : '' }}>Completadas</option>
                                 <option value="0" {{ request('status') === '0' ? 'selected' : '' }}>Incompletas</option>
                             </select>
@@ -55,12 +55,21 @@
                     <span class="sr-only"></span>
                 @endif
                 <div class="card-body">
-                    <h4>{{$evaluation->id}}</h4>
+                    <h4>ID: {{$evaluation->id}}</h4>
                     <h5 class="card-title">Fecha: {{ $evaluation->created_at->format('d-m-Y') }}</h5>
                 </div>
                     <div class="btn-group">
-                        <button class="btn btn-sm btn-primary"><i class="fas fa-eye"></i> Ver detalles</button>
+                        <a href="{{ route('admin.detalles_evaluacion', ['evaluationId' => $evaluation->id]) }}" class="btn btn-sm btn-secondary" title="Ver detalles">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{{ route('admin.evaluacion_editar', $evaluation->id) }}" class="btn btn-sm btn-primary" title="Editar evaluacion">
+                            <i class="fa fa-edit"></i>
+                        </a>
+                        <a href="" class="btn btn-sm btn-danger" title="Eliminar evaluacion">
+                            <i class="fa fa-trash"></i>
+                        </a>
                     </div>
+
             </div>
         </div>
         @endforeach

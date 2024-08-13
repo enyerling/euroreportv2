@@ -36,7 +36,7 @@
                 </div>
                 <div class="btn-group">
                     <a href="{{ route('admin.motrar_evaluacion', ['hotelId' => $hotel->id]) }}" class="btn btn-sm btn-primary" title="Realizar evaluación"><i class="fas fa-edit"></i></a>
-                    <a href="{{ route('evaluaciones_completas',['hotelId' => $hotel->id]) }}" class="btn btn-sm btn-secondary" title="Ver evaluaciones"><i class="fas fa-eye"></i></a>
+                    <a href="{{ route('admin.evaluacioneshotel',['hotelId' => $hotel->id]) }}" class="btn btn-sm btn-secondary" title="Ver evaluaciones"><i class="fas fa-eye"></i></a>
                 </div>
             </div>
         </div>

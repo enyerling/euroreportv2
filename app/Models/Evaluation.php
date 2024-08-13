@@ -8,7 +8,7 @@ class Evaluation extends Model
 {
     //
     protected $fillable = [
-        'id', 'record_evaluation_id', 'system_id', 'question_id', 'answer','date', 'room'
+        'id', 'record_evaluation_id', 'system_id', 'question_id', 'answer','date', 'room', 'instance'
     ];
 
     public function question()
@@ -23,6 +23,11 @@ class Evaluation extends Model
     public function system()
     {
         return $this->belongsTo('App\Models\System');
+    }
+
+    public function recordEvaluation()
+    {
+        return $this->belongsTo('App\Models\RecordEvaluation');
     }
 
 
