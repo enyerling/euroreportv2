@@ -15,7 +15,7 @@ return [
     */
 
     'title' => 'EuroReport',
-    'title_prefix' => '',
+    'title_prefix' => 'EuroReport |',
     'title_postfix' => '',
 
     /*
@@ -110,7 +110,7 @@ return [
         'enabled' => true,
         'img' => [
             'path' => 'vendor/adminlte/dist/img/logo_1.png',
-            'alt' => 'AdminLTE Preloader Image',
+            'alt' => 'EuroReport',
             'effect' => 'animation__shake',
             'width' => 200,
             'height' => 200,
@@ -130,11 +130,11 @@ return [
     */
 
     'usermenu_enabled' => true,
-    'usermenu_header' => false,
+    'usermenu_header' => true,
     'usermenu_header_class' => 'bg-primary',
     'usermenu_image' => false,
     'usermenu_desc' => false,
-    'usermenu_profile_url' => false,
+    'usermenu_profile_url' => true,
 
     /*
     |--------------------------------------------------------------------------
@@ -253,7 +253,7 @@ return [
     */
 
     'use_route_url' => false,
-    'dashboard_url' => 'home',
+    'dashboard_url' => 'dashboard',
     'logout_url' => 'logout',
     'login_url' => 'login',
     'register_url' => 'register',
@@ -289,48 +289,41 @@ return [
     |
     */
 
-    'menu' => [
-        // Navbar items:
-        [
-            'type'         => 'navbar-search',
-            'text'         => 'search',
-            'topnav_right' => true,
-        ],
-        [
-            'type'         => 'fullscreen-widget',
-            'topnav_right' => true,
-        ],
+        'menu' => [
+            // Navbar items:
+            [
+                'type'         => 'navbar-search',
+                'text'         => 'search',
+                'topnav_right' => true,
+            ],
+            [
+                'type'         => 'fullscreen-widget',
+                'topnav_right' => true,
+            ],
 
-        // Sidebar items:
-        [
-            'type' => 'sidebar-menu-search',
-            'text' => 'Buscar',
-        ],
-        [
-            'text' => 'blog',
-            'url'  => 'admin/blog',
-            'can'  => 'manage-blog',
-        ],
-        [
-            'text'        => 'Inicio',
-            'url'         => 'admin/dashboard',
-            'icon'        => 'far fa fa-table',
-        ],
-        [
-            'text'        => 'Hoteles',
-            'url'         => 'admin/hoteles',
-            'icon'        => 'far fa-fw fa-building',
-        ],
-        [
-            'text'        => 'Evaluaciones',
-            'url'         => 'admin/evaluaciones',
-            'icon'        => 'fas fa-fw fa-user',
-        ],
-        [
-            'text'        => 'Usuarios',
-            'url'         => 'admin/users',
-            'icon'        => 'fas fa-fw fa-user',
-        ],
+            // Sidebar items:
+            [
+                'type' => 'sidebar-menu-search',
+                'text' => 'Buscar',
+            ],
+            [
+                'text'        => 'Inicio',
+                'url'         => '/dashboard',
+                'icon'        => 'far fa fa-table',
+            ],
+            [
+                'text'        => 'Hoteles',
+                'url'         => '/hoteles',
+                'icon'        => 'far fa-fw fa-building',
+                'can'         => 'gestionar hoteles',
+            ],
+            [
+                'text'        => 'Usuarios',
+                'url'         => '/users',
+                'icon'        => 'fas fa-fw fa-user',
+                'can'         => 'ver usuarios',
+                
+            ],
        
         ['header' => 'CONFIGURACION CUENTA'],
         [

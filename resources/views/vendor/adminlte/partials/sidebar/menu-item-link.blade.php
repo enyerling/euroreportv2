@@ -1,3 +1,4 @@
+
 <li @isset($item['id']) id="{{ $item['id'] }}" @endisset class="nav-item">
 
     <a class="nav-link {{ $item['class'] }} @isset($item['shift']) {{ $item['shift'] }} @endisset"

@@ -8,9 +8,8 @@ use Illuminate\Http\Request;
 
 class HomeController extends Controller
 {
-    public function dashboard()
+    protected function redirectTo()
     {
-        $hotels= Hotel::all();
-        return view('admin.dashboard', compact('Hotels'));
+        return '/dashboard';
     }
 }

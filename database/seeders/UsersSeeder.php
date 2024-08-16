@@ -7,6 +7,10 @@ use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Exceptions\PermissionDoesNotExist;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
+
 
 class UsersSeeder extends Seeder
 {
@@ -17,6 +21,23 @@ class UsersSeeder extends Seeder
      */
     public function run()
     {
-      
+        Role::create(['name' => 'admin']);
+        Role::create(['name' => 'subadmin']);
+        Role::create(['name' => 'user']);
+
+        Permission::create(['name' => 'ver usuarios']);
+        Permission::create(['name' => 'gestionar hoteles']);
+
+        $adminRole = Role::findByName('admin');
+        $adminRole->givePermissionTo(['ver usuarios', 'gestionar hoteles']);
+
+        $user = User::find(1);
+        $user->assignRole('admin');
+        $user = User::find(2);
+        $user->assignRole('subadmin');
+        $user = User::find(3);
+        $user->assignRole('user');
+
+        
     }
 }

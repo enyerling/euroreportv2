@@ -170,69 +170,70 @@
 @endsection
 
 @section('js')
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const searchInput = document.getElementById('searchInput');
-        const tableBody = document.getElementById('tableBody');
-        const rows = tableBody.getElementsByTagName('tr');
+    <script src="{{ asset('js/custom.js') }}"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const searchInput = document.getElementById('searchInput');
+                const tableBody = document.getElementById('tableBody');
+                const rows = tableBody.getElementsByTagName('tr');
 
-        searchInput.addEventListener('input', function () {
-            const filter = searchInput.value.toLowerCase();
+                searchInput.addEventListener('input', function () {
+                    const filter = searchInput.value.toLowerCase();
 
-            Array.from(rows).forEach(row => {
-                const cells = row.getElementsByTagName('td');
-                let match = false;
+                    Array.from(rows).forEach(row => {
+                        const cells = row.getElementsByTagName('td');
+                        let match = false;
 
-                Array.from(cells).forEach(cell => {
-                    if (cell.textContent.toLowerCase().includes(filter)) {
-                        match = true;
-                    }
+                        Array.from(cells).forEach(cell => {
+                            if (cell.textContent.toLowerCase().includes(filter)) {
+                                match = true;
+                            }
+                        });
+
+                        row.style.display = match ? '' : 'none';
+                    });
                 });
-
-                row.style.display = match ? '' : 'none';
             });
-        });
-    });
 
-    document.getElementById('hotelImage').addEventListener('change', function(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const img = new Image();
-            img.onload = function() {
-                if (img.width !== 1156 || img.height !== 768) {
-                    alert('La imagen debe tener un tamaño de 1156x768 píxeles.');
-                    document.getElementById('hotelImage').value = ''; // Limpiar la selección de la imagen
+            document.getElementById('hotelImage').addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const img = new Image();
+                    img.onload = function() {
+                        if (img.width !== 1156 || img.height !== 768) {
+                            alert('La imagen debe tener un tamaño de 1156x768 píxeles.');
+                            document.getElementById('hotelImage').value = ''; // Limpiar la selección de la imagen
+                        }
+                    };
+                    img.src = URL.createObjectURL(file);
                 }
-            };
-            img.src = URL.createObjectURL(file);
-        }
-    });
-
-    function openEditModal(hotelId, hotelName, managerName) {
-        document.getElementById('editHotelId').value = hotelId;
-        document.getElementById('editHotelName').value = hotelName;
-        document.getElementById('editManagerName').value = managerName;
-        document.getElementById('editHotelForm').action = '/admin/hotel/update/' + hotelId;
-
-        $('#editHotelModal').modal('show');
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        const deleteButtons = document.querySelectorAll('.btn-delete');
-        
-        deleteButtons.forEach(button => {
-            button.addEventListener('click', function () {
-                const hotelId = this.getAttribute('data-id');
-                const form = document.getElementById('deleteForm');
-                
-                // Configura la URL de acción del formulario
-                form.action = `/admin/hotel/delete/${hotelId}`; 
-                
-                // Muestra el modal
-                $('#deleteModal').modal('show');
             });
-        });
-    });
 
-</script>
+            function openEditModal(hotelId, hotelName, managerName) {
+                document.getElementById('editHotelId').value = hotelId;
+                document.getElementById('editHotelName').value = hotelName;
+                document.getElementById('editManagerName').value = managerName;
+                document.getElementById('editHotelForm').action = '/admin/hotel/update/' + hotelId;
+
+                $('#editHotelModal').modal('show');
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                const deleteButtons = document.querySelectorAll('.btn-delete');
+                
+                deleteButtons.forEach(button => {
+                    button.addEventListener('click', function () {
+                        const hotelId = this.getAttribute('data-id');
+                        const form = document.getElementById('deleteForm');
+                        
+                        // Configura la URL de acción del formulario
+                        form.action = `/admin/hotel/delete/${hotelId}`; 
+                        
+                        // Muestra el modal
+                        $('#deleteModal').modal('show');
+                    });
+                });
+            });
+
+    </script>
 @endsection

@@ -93,12 +93,4 @@
         </p>
     @endif
 
-    {{-- Register link --}}
-    @if($register_url)
-        <p class="my-0">
-            <a href="{{ $register_url }}">
-                {{ __('Registrarse') }}
-            </a>
-        </p>
-    @endif
 @stop
