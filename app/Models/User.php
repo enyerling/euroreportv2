@@ -50,5 +50,10 @@ class User extends Authenticatable
         return 'profile/username';
     }
 
+    public function hotel()
+    {
+        return $this->belongsTo(Hotel::class);
+    }
+
     
 }

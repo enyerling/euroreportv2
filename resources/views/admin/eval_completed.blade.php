@@ -62,12 +62,14 @@
                         <a href="{{ route('admin.detalles_evaluacion', ['evaluationId' => $evaluation->id]) }}" class="btn btn-sm btn-secondary" title="Ver detalles">
                             <i class="fas fa-eye"></i>
                         </a>
+                        @role('admin|subadmin')
                         <a href="{{ route('admin.evaluacion_editar', $evaluation->id) }}" class="btn btn-sm btn-primary" title="Editar evaluacion">
                             <i class="fa fa-edit"></i>
                         </a>
                         <a href="" class="btn btn-sm btn-danger" title="Eliminar evaluacion">
                             <i class="fa fa-trash"></i>
                         </a>
+                        @endrole
                     </div>
 
             </div>

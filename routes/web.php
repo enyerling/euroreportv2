@@ -10,6 +10,7 @@ use App\Http\Controllers\ObservationController;
 use App\HTTP\Controllers\Auth\LoginController;
 use App\HTTP\Controllers\UserController;
 
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -35,9 +36,9 @@ Auth::routes();
 
     //hoteles
     Route::get('/hoteles', [HotelController::class, 'hotels'])->name('admin.hoteles');
-    Route::post('/hotel/save', [HotelController::class, 'store'])->name('admin.hoteles.store');
-    Route::put('/hotel/update/{id}', [HotelController::class, 'update'])->name('admin.hoteles.update');
-    Route::delete('/hotel/delete/{id}', [HotelController::class, 'destroy'])->name('admin.hoteles.destroy');
+    Route::post('save//hotel', [HotelController::class, 'store'])->name('admin.hoteles.store');
+    Route::put('/update/hotel/{id}', [HotelController::class, 'update'])->name('admin.hoteles.update');
+    Route::delete('/delete/hotel/{id}', [HotelController::class, 'destroy'])->name('admin.hoteles.destroy');
 
     //Configurar sistemas
     Route::get('/config/Systems/{hotelId}', [HotelConfigController::class, 'showConfigForm'])->name('hotel_config');
@@ -65,8 +66,17 @@ Auth::routes();
 
     //usuarios
     Route::get('/users', [UserController::class, 'showAll'])->name('admin.users');
+    Route::post('/save/users', [UserController::class, 'store'])->name('admin.users.store');
+    Route::put('/update/users/{id}', [UserController::class, 'update'])->name('admin.users.update');
+    Route::delete('/delete/users/{id}', [UserController::class, 'destroy'])->name('admin.users.destroy');
     
+
+    
+
+    Route::get('/send-email', [UserController::class, 'sendEmail'])->name('send.email');
     });
+
+
 
 
         

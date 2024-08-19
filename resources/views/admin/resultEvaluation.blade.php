@@ -7,9 +7,11 @@
     <br>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="text-center mb-0">Resultados de la Evaluación</h2>
+        @role('admin|subadmin')
         <a href="{{ route('admin.observations', ['record_evaluation_id' => $recordId]) }}" class="btn btn-primary">
             <i class="fas fa-plus"></i>Observaciones
         </a>
+        @endrole
     </div>
 
     <div class="alert alert-secondary text-center">
