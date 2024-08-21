@@ -165,8 +165,6 @@
     </div>
 </div>
 
-
-
 @endsection
 
 @section('js')
@@ -213,7 +211,7 @@
                 document.getElementById('editHotelId').value = hotelId;
                 document.getElementById('editHotelName').value = hotelName;
                 document.getElementById('editManagerName').value = managerName;
-                document.getElementById('editHotelForm').action = '/admin/hotel/update/' + hotelId;
+                document.getElementById('editHotelForm').action = '/update/hotel/' + hotelId;
 
                 $('#editHotelModal').modal('show');
             }
@@ -227,7 +225,7 @@
                         const form = document.getElementById('deleteForm');
                         
                         // Configura la URL de acción del formulario
-                        form.action = `/admin/hotel/delete/${hotelId}`; 
+                        form.action = `/delete/hotel/${hotelId}`; 
                         
                         // Muestra el modal
                         $('#deleteModal').modal('show');

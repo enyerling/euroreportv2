@@ -12,7 +12,10 @@ use App\Models\Question;
 use App\Models\QuestionsHotel;
 use App\Models\RecordEvaluation;
 use App\Models\Evaluation;
+use App\Models\Observations;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\View;
 
 class EvaluationController extends Controller
 {
@@ -126,7 +129,8 @@ class EvaluationController extends Controller
         $recordEvaluation->save();
     
         return response()->json([
-            'faltan_preguntas' => !$isComplete
+            'faltan_preguntas' => !$isComplete,
+            'debug' => $request->all() 
         ]);
     }
     
@@ -171,8 +175,17 @@ class EvaluationController extends Controller
         foreach ($scoresBySystem as $systemScore) {
             $totalScore += $systemScore['score'];
         }
+
+        $record = RecordEvaluation::find($recordId);
+        $hotel = $record->hotel; 
+        $hotelName = $hotel->name;
+        $managerName = $hotel->manager; 
+        $issueDate = now()->format('d-m-Y');
+
+        $observations = Observations::where('record_evaluation_id', $recordId)->get();
     
-        return view('admin.resultEvaluation', ['scoresBySystem' => $scoresBySystem,'totalScore' => $totalScore, 'recordId' => $recordId ]);
+        return view('admin.resultEvaluation', ['scoresBySystem' => $scoresBySystem,'totalScore' => $totalScore, 'observations' => $observations,
+        'recordId' => $recordId , 'hotelName' => $hotelName,'managerName' => $managerName,'issueDate' => $issueDate])->render();
     }
 
     public function showEvalCompleted(Request $request,$hotelId)
@@ -278,7 +291,7 @@ class EvaluationController extends Controller
      
     public function actualizarEvaluacion(Request $request)
     {
-        $recordEvaluationId = $request->input('record_evaluation_id');
+        $recordEvaluationId = $request->input('evaluationId');
         $hotelId = $request->input('hotel_id');
 
         $recordEvaluation = RecordEvaluation::findOrFail($recordEvaluationId);
@@ -324,6 +337,33 @@ class EvaluationController extends Controller
         return response()->json([
             'faltan_preguntas' => !$isComplete
         ]);
+    }
+
+
+    public function destroy($recordId)
+    {
+        $recordEvaluation = RecordEvaluation::findOrFail($recordId);
+        $recordEvaluation->delete();
+
+       return back();
+    }
+
+    public function enviarResultadoPorCorreo($evaluationId)
+    {
+        if (request()->routeIs('enviar.resultados')) {
+            config(['preload' => false]); 
+        }
+        // Obtén el contenido HTML de la vista
+        $viewContent = $this->calcularPuntaje($evaluationId);
+
+        // Envía el correo
+        Mail::html($viewContent, function ($message) {
+            $message->to('enyerlingmendoza2@gmail.com')
+                    ->subject('Resultados de la Evaluación');
+        });
+
+        // Redirige a la ruta deseada después de enviar el correo
+        return redirect()->route('admin.detalles_evaluacion', ['evaluationId' => $evaluationId ]);
     }
 
 

@@ -9,7 +9,7 @@ use App\Models\Audience;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\Mail;
+
 
 class UserController extends Controller
 {
@@ -72,14 +72,5 @@ class UserController extends Controller
         return redirect()->route('admin.users')->with('success', 'Usuario eliminado correctamente.');
     }
     
-    public function sendEmail()
-    {
-        Mail::raw('Este es un correo de prueba desde Laravel.', function ($message) {
-            $message->to('euroreportapp@gmail.com')
-                    ->subject('Correo de Prueba');
-        });
-    
-        return 'Correo enviado!';
-    }
     
 }

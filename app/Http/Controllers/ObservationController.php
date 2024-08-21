@@ -40,7 +40,7 @@ class ObservationController extends Controller
             ['answer' => $observaciones]
         );
 
-        return redirect()->route('admin.hoteles');
+        return redirect()->route('admin.detalles_evaluacion', ['evaluationId' => $recordEvaluationId]);
     }
 
 

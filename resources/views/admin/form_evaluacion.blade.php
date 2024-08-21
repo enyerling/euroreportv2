@@ -73,6 +73,7 @@
     <div class="text-center mt-3">
         <button type="submit" class="btn btn-primary" id="guardarEvaluacionBtn">Guardar Evaluación</button>
     </div>
+    <br>
 
 </form>
 
@@ -107,32 +108,36 @@
     <script src="{{ asset('js/custom.js') }}"></script>
     <script>
         $(document).ready(function() {
-            $('#evaluationForm').submit(function(event) {
-                event.preventDefault(); // Evita el envío estándar del formulario
+        $('#evaluationForm').submit(function(event) {
+            event.preventDefault(); // Evita el envío estándar del formulario
 
-                $.ajax({
-                    url: $(this).attr('action'),
-                    type: 'POST',
-                    data: $(this).serialize(),
-                    success: function(response) {
-                        if (response.faltan_preguntas) {
-                            $('#resultIcon').css('color', '#ffc107'); // Amarillo para advertencia
-                            $('#resultIcon').html('<i class="fas fa-exclamation-triangle"></i>');
-                            $('#resultMessage').text('¡Atención! Recuerda que hay preguntas por responder.');
-                        } else {
-                            $('#resultIcon').css('color', '#28a745'); // Verde para éxito
-                            $('#resultIcon').html('<i class="fas fa-check-circle"></i>');
-                            $('#resultMessage').text('Evaluación guardada con éxito.');
-                        }
+            var formData = new FormData(this);
 
-                        $('#resultModal').modal('show'); // Muestra el modal
-                    },
-                    error: function(xhr) {
-                        console.error('Error en la solicitud:', xhr);
+            $.ajax({
+                url: $(this).attr('action'),
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function(response) {
+                    console.log('Respuesta del servidor:', response);
+                    if (response.faltan_preguntas) {
+                        $('#resultIcon').css('color', '#ffc107');
+                        $('#resultIcon').html('<i class="fas fa-exclamation-triangle"></i>');
+                        $('#resultMessage').text('¡Atención! Recuerda que hay preguntas por responder.');
+                    } else {
+                        $('#resultIcon').css('color', '#28a745');
+                        $('#resultIcon').html('<i class="fas fa-check-circle"></i>');
+                        $('#resultMessage').text('Evaluación guardada con éxito.');
                     }
-                });
+                    $('#resultModal').modal('show');
+                },
+                error: function(xhr) {
+                    console.error('Error en la solicitud:', xhr.responseText);
+                }
             });
         });
+    });
     </script>
 
 @stop

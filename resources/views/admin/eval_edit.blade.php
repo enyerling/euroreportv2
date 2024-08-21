@@ -12,7 +12,7 @@
     <form method="POST" action="{{ route('admin.evaluacion_actualizar', $recordEvaluation->id) }}" id="evaluationForm">
         @csrf
         @method('PUT')
-        <input type="hidden" name="record_evaluation_id" value="{{ $recordEvaluation->id }}">
+        <input type="hidden" name="evaluationId" value="{{ $recordEvaluation->id }}">
         <input type="hidden" name="hotel_id" value="{{ $hotelId }}">
 
         @foreach ($preguntasPorSistema as $index => $item)

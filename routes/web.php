@@ -52,17 +52,21 @@ Auth::routes();
     Route::get('/form/evaluation/{hotelId}', [EvaluationController::class, 'mostrarPreguntasEval'])->name('admin.motrar_evaluacion');
     Route::post('/save/evaluation', [EvaluationController::class, 'guardarEvaluacion'])->name('admin.guardar_evaluacion');
     Route::get('/results/evaluation/{evaluationId}',[EvaluationController::class, 'calcularPuntaje'])->name('admin.detalles_evaluacion');
+  
     Route::get('/showDetails/evaluations/{recordId}', [EvaluationController::class, 'showEvaluation'])->name('admin.ver_evaluacion');
-    Route::get('/form/edit/evaluations/{recordEvaluationId}', [EvaluationController::class, 'editarEvaluacion'])->name('admin.evaluacion_editar');
-    Route::put('/update/evluations/{id}', [EvaluationController::class, 'actualizarEvaluacion'])->name('admin.evaluacion_actualizar');
-    
+    Route::get('/form/edit/evaluations/{evaluationId}', [EvaluationController::class, 'editarEvaluacion'])->name('admin.evaluacion_editar');
+    Route::put('/update/evaluations/{evaluationId}', [EvaluationController::class, 'actualizarEvaluacion'])->name('admin.evaluacion_actualizar');
+    Route::delete('/delete/evaluations/{evaluationId}', [EvaluationController::class, 'destroy'])->name('admin.eliminar_evaluacion');
+
+    //Evaluaciones por hotel 
+    Route::get('/show/evaluations/{hotelId}',[EvaluationController::class, 'showEvalCompleted'])->name('admin.evaluacioneshotel');
 
     //Observaciones
     Route::get('/observations/evaluations/{record_evaluation_id}',[ObservationController::class, 'observaciones'])->name('admin.observations');
     Route::post('/save/observations',[ObservationController::class, 'guardar_observations'])->name('admin.guardar_observations');
 
     
-    Route::get('/show/evaluations/{hotelId}',[EvaluationController::class, 'showEvalCompleted'])->name('admin.evaluacioneshotel');
+    
 
     //usuarios
     Route::get('/users', [UserController::class, 'showAll'])->name('admin.users');
@@ -71,9 +75,9 @@ Auth::routes();
     Route::delete('/delete/users/{id}', [UserController::class, 'destroy'])->name('admin.users.destroy');
     
 
-    
 
-    Route::get('/send-email', [UserController::class, 'sendEmail'])->name('send.email');
+
+    Route::get('/enviar-resultados/{evaluationId}', [EvaluationController::class, 'enviarResultadoPorCorreo'])->name('enviar.resultados');
     });
 
 

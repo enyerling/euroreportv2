@@ -49,10 +49,17 @@
         <div class="col-md-3 col-sm-4">
             <div class="card text-white bg-dark mb-3">
                 @if ($evaluation->status === '1')
-                    <i class="text-success fa fa-check-square fa-2x"></i>
+                    <div class="d-flex justify-content-between align-items-start">
+                        <i class="text-success fa fa-check-square fa-2x"></i>
+                        <a href="{{ route('enviar.resultados', ['evaluationId' => $evaluation->id]) }}" class="btn btn-sm btn-dark" title="Enviar correo">
+                            <i class="fa fa-envelope "></i>
+                        </a>
+                    </div>
                 @else
-                    <i class="text-warning fa fa-cog fa-spin fa-2x fa-fw"></i>
-                    <span class="sr-only"></span>
+                    <div class="d-flex justify-content-between align-items-start">
+                        <i class="text-warning fa fa-cog fa-spin fa-2x fa-fw"></i>
+                        <span class="sr-only"></span>
+                    </div>
                 @endif
                 <div class="card-body">
                     <h4>ID: {{$evaluation->id}}</h4>
@@ -63,11 +70,11 @@
                             <i class="fas fa-eye"></i>
                         </a>
                         @role('admin|subadmin')
-                        <a href="{{ route('admin.evaluacion_editar', $evaluation->id) }}" class="btn btn-sm btn-primary" title="Editar evaluacion">
+                        <a href="{{ route('admin.evaluacion_editar', ['evaluationId' => $evaluation->id]) }}" class="btn btn-sm btn-primary" title="Editar evaluacion">
                             <i class="fa fa-edit"></i>
                         </a>
-                        <a href="" class="btn btn-sm btn-danger" title="Eliminar evaluacion">
-                            <i class="fa fa-trash"></i>
+                        <a class="btn btn-danger btn-delete btn-sm" href="#" data-id="{{ $evaluation->id }}" title="Eliminar evaluación">
+                            <i class="fa fa-trash"></i> 
                         </a>
                         @endrole
                     </div>
@@ -76,8 +83,51 @@
         </div>
         @endforeach
     </div>
+<!-- Modal de Confirmación de Eliminación -->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirmar Eliminación</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                ¿Estás seguro de que deseas eliminar esta evaluacion? Esta acción eliminará todos los registros asociados.
+            </div>
+            <div class="modal-footer">
+                <form id="deleteForm" method="POST" action="">
+                    @csrf
+                    @method('DELETE')
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Eliminar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 @stop
+
 
 @section('js')
     <script src="{{ asset('js/custom.js') }}"></script>
+    <script>
+       document.addEventListener('DOMContentLoaded', function () {
+            const deleteButtons = document.querySelectorAll('.btn-delete');
+                
+            deleteButtons.forEach(button => {
+                   button.addEventListener('click', function () {
+                    const evaluationId = this.getAttribute('data-id');
+                    const form = document.getElementById('deleteForm');
+                        
+                        // Configura la URL de acción del formulario
+                    form.action = `/delete/evaluations/${evaluationId}`; 
+                        
+                        // Muestra el modal
+                    $('#deleteModal').modal('show');
+                });
+            });
+        });
+    </script>
 @stop
