@@ -2,7 +2,6 @@
 @section('title', 'Home')
 
 @section('css')
-    <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
 @stop
 
 @section('content_header')
@@ -33,8 +32,4 @@
         @endforeach
     </div>
 
-@stop
-
-@section('js')
-    <script src="{{ asset('js/custom.js') }}"></script>
 @stop

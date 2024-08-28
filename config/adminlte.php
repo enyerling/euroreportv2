@@ -134,7 +134,7 @@ return [
     'usermenu_header_class' => 'bg-primary',
     'usermenu_image' => false,
     'usermenu_desc' => false,
-    'usermenu_profile_url' => true,
+    'usermenu_profile_url' => '/profile',
 
     /*
     |--------------------------------------------------------------------------
@@ -259,7 +259,7 @@ return [
     'register_url' => 'register',
     'password_reset_url' => 'password/reset',
     'password_email_url' => 'password/email',
-    'profile_url' => false,
+    'profile_url' => '/profile',
 
     /*
     |--------------------------------------------------------------------------
@@ -319,15 +319,10 @@ return [
         ['header' => 'CONFIGURACION CUENTA'],
         [
             'text' => 'Perfil',
-            'url'  => 'admin/settings',
+            'url'  => '/profile',
             'icon' => 'fas fa-fw fa-user',
         ],
-        [
-            'text' => 'Cambiar contraseña',
-            'url'  => 'admin/settings',
-            'icon' => 'fas fa-fw fa-lock',
-        ],
-       
+   
     ],
 
     /*

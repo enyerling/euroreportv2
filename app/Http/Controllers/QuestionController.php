@@ -10,9 +10,7 @@ use Illuminate\Support\Facades\Auth;
 
 class QuestionController extends Controller
 {
-
-    public function index()
-    {
+    public function questions(){
         $user = Auth::user();
         $audience = new Audience(array(
             'name' => $user->name,
@@ -20,11 +18,6 @@ class QuestionController extends Controller
             'action' => 'INGRESO AL MODULO DE PREGUNTAS',
         ));
         $audience->save();
-
-        return view('questions.index');
-    }
-
-    public function questions(){
 
         $questions = Question::orderBy('id', 'ASC')->paginate(10);
         $var = 0;
@@ -71,16 +64,6 @@ class QuestionController extends Controller
         return;
     }
 
-    public function show(Question $question)
-    {
-        
-    }
-
-    public function edit(Question $question)
-    {
-        //
-    }
-
     public function update(Request $request, Question $question)
     {
         //
@@ -103,7 +86,6 @@ class QuestionController extends Controller
 
     public function destroy(Question $question)
     {
-        //
         $question->delete();
         return;
     }

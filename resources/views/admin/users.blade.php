@@ -8,7 +8,7 @@
 
 @section('content_header')
     <div class="d-flex justify-content-between align-items-center">
-        <h2>Usuarios</h2>
+        <h1>Usuarios</h1>
         <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#addUserModal">
             <i class="fas fa-plus"></i> Agregar usuario
         </button>
@@ -203,7 +203,6 @@
 @endsection
 
 @section('js')
-    <script src="{{ asset('js/custom.js') }}"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
                 const searchInput = document.getElementById('searchInput');

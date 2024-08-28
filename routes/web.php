@@ -42,15 +42,15 @@ Auth::routes();
 
     //Configurar sistemas
     Route::get('/config/Systems/{hotelId}', [HotelConfigController::class, 'showConfigForm'])->name('hotel_config');
-    Route::post('/save/Systems', [HotelConfigController::class, 'guardarConfiguracion'])->name('admin.guardar_configuracion');
+    Route::post('/save/Systems', [HotelConfigController::class, 'saveConfiguracion'])->name('admin.guardar_configuracion');
 
     //Configurar preguntas
     Route::get('/config/Questions/{hotelId}', [HotelConfigController::class, 'showQuestionsForSystems'])->name('admin.question_config');
-    Route::post('/save/Questions', [HotelConfigController::class, 'guardarPreguntas'])->name('guardar_preguntas');
+    Route::post('/save/Questions', [HotelConfigController::class, 'savePreguntas'])->name('guardar_preguntas');
 
     //Evaluacion
-    Route::get('/form/evaluation/{hotelId}', [EvaluationController::class, 'mostrarPreguntasEval'])->name('admin.motrar_evaluacion');
-    Route::post('/save/evaluation', [EvaluationController::class, 'guardarEvaluacion'])->name('admin.guardar_evaluacion');
+    Route::get('/form/evaluation/{hotelId}', [EvaluationController::class, 'showPreguntasEval'])->name('admin.motrar_evaluacion');
+    Route::post('/save/evaluation', [EvaluationController::class, 'saveEvaluacion'])->name('admin.guardar_evaluacion');
     Route::get('/results/evaluation/{evaluationId}',[EvaluationController::class, 'calcularPuntaje'])->name('admin.detalles_evaluacion');
   
     Route::get('/showDetails/evaluations/{recordId}', [EvaluationController::class, 'showEvaluation'])->name('admin.ver_evaluacion');
@@ -63,21 +63,20 @@ Auth::routes();
 
     //Observaciones
     Route::get('/observations/evaluations/{record_evaluation_id}',[ObservationController::class, 'observaciones'])->name('admin.observations');
-    Route::post('/save/observations',[ObservationController::class, 'guardar_observations'])->name('admin.guardar_observations');
-
-    
-    
+    Route::post('/save/observations',[ObservationController::class, 'saveObservations'])->name('admin.guardar_observations');
 
     //usuarios
     Route::get('/users', [UserController::class, 'showAll'])->name('admin.users');
     Route::post('/save/users', [UserController::class, 'store'])->name('admin.users.store');
     Route::put('/update/users/{id}', [UserController::class, 'update'])->name('admin.users.update');
     Route::delete('/delete/users/{id}', [UserController::class, 'destroy'])->name('admin.users.destroy');
-    
 
-
+    //perfil
+    Route::patch('/update/profile', [UserController::class, 'updateprofile'])->name('profile.update');
+    Route::get('/profile', [UserController::class, 'profile'])->name('profile');
 
     Route::get('/enviar-resultados/{evaluationId}', [EvaluationController::class, 'enviarResultadoPorCorreo'])->name('enviar.resultados');
+
     });
 
 

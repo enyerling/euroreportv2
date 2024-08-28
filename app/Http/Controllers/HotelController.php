@@ -11,7 +11,8 @@ use Intervention\Image\ImageManagerStatic as Image;
 
 class HotelController extends Controller
 {
-    public function index()
+    // ALL HOTELS
+    public function hotels()
     {
         $user     = Auth::user();
         $audience = new Audience(array(
@@ -20,14 +21,7 @@ class HotelController extends Controller
             'action' => 'INGRESO AL MODULO DE HOTEL',
         ));
         $audience->save();
-
-        //return view('hotels.index');
         
-    }
-
-    // ALL HOTELS
-    public function hotels()
-    {
         $hotels = Hotel::orderBy('id', 'ASC')->paginate(10);
         return view('admin.hoteles', compact('hotels'));
 
@@ -58,8 +52,14 @@ class HotelController extends Controller
 
     public function showAll()
     {
-        $hotels = Hotel::all(); 
+        $user = Auth::user();
         $hotelEvaluations = [];
+
+        if ($user->hasRole('admin') || $user->hasRole('subadmin')) {
+            $hotels = Hotel::all(); 
+        } elseif ($user->hasRole('user')) {
+            $hotels = Hotel::where('id', $user->hotel_id)->get();
+        }
 
         foreach ($hotels as $hotel) {
             $latestRecord = RecordEvaluation::where('hotel_id', $hotel->id)

@@ -107,7 +107,6 @@
 @stop
 
 @section('js')
-    <script src="{{ asset('js/custom.js') }}"></script>
     <script>
         function selectAll(listId) {
             var checkboxes = document.querySelectorAll('#' + listId + ' .form-check-input');

@@ -45,6 +45,7 @@
 
             <div class="text-center mt-4">
                 <button type="submit" class="btn btn-primary">Guardar</button>
+                <button type="button" class="btn btn-secondary" onclick="window.history.back()">Volver</button>
             </div>
         </form>
 
@@ -98,5 +99,4 @@
 @endsection
 
 @section('js')
-    <script src="{{ asset('js/custom.js') }}"></script>
 @stop

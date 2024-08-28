@@ -15,7 +15,8 @@ use Illuminate\Support\Facades\Auth;
 
 class HotelConfigController extends Controller
 {
-    public function index()
+
+    public function showConfigForm($hotelId)
     {
         $user     = Auth::user();
         $audience = new Audience(array(
@@ -24,19 +25,13 @@ class HotelConfigController extends Controller
             'action' => 'INGRESO AL MODULO DE CONFIGURACION',
         ));
         $audience->save();
-
-        //return view('hoteles');
         
+        $hotel = Hotel::find($hotelId);
+        $sistemas = System::all(); 
+        return view('admin.eval_config', ['hotel' => $hotel, 'sistemas' => $sistemas]);
     }
 
-    public function showConfigForm($hotelId)
-    {
-    $hotel = Hotel::find($hotelId);
-    $sistemas = System::all(); 
-    return view('admin.eval_config', ['hotel' => $hotel, 'sistemas' => $sistemas]);
-    }
-
-    public function guardarConfiguracion(Request $request) {
+    public function saveConfiguracion(Request $request) {
         $hotelId = $request->input('hotel_id');
         $sistemas = $request->input('sistemas');
         
@@ -88,7 +83,7 @@ class HotelConfigController extends Controller
         ]);
     }
 
-    public function guardarPreguntas(Request $request)
+    public function savePreguntas(Request $request)
     {
         // Obtener el ID del hotel desde el formulario
         $hotelId = $request->input('hotel_id');

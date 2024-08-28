@@ -13,23 +13,15 @@ use App\Models\QuestionsHotel;
 use App\Models\RecordEvaluation;
 use App\Models\Evaluation;
 use App\Models\Observations;
+use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\View;
 
 class EvaluationController extends Controller
 {
-    public function index()
-    {
-        $user     = Auth::user();
-        $audience = new Audience(array(
-            'name'   => $user->name,
-            'email'  => $user->email,
-            'action' => 'INGRESO AL MODULO DE EVALUACION',
-        ));
-        $audience->save();
-    }
-    public function mostrarPreguntasEval($hotelId) {
+
+    public function showPreguntasEval($hotelId) {
         // Obtener los sistemas asociados con el hotel
         $hotelSystems = HotelSystem::where('hotel_id', $hotelId)->with('system')->get();
     
@@ -74,15 +66,16 @@ class EvaluationController extends Controller
                 ];
             }
         }
-    
+        
         return view('admin.form_evaluacion', compact('preguntasPorSistema', 'hotelId'));
     }
     
         
-    public function guardarEvaluacion(Request $request) {
+    public function saveEvaluacion(Request $request) {  
+    try { 
         $hotelId = $request->input('hotel_id');
         $status = $request->input('status', 1);
-    
+        
         // Crear el registro de evaluación
         $recordEvaluation = RecordEvaluation::create([
             'hotel_id' => $hotelId,
@@ -90,19 +83,18 @@ class EvaluationController extends Controller
         ]);
     
         $recordId = $recordEvaluation->id;
+        $isComplete = true;
     
         foreach ($request->input('sistemas') as $sistemaIndex => $sistema) {
             $systemId = $sistema['system_id'];
             $instance = $sistema['instance'];
             $preguntas = $sistema['preguntas'];
-
-            $isComplete = true;
     
             foreach ($preguntas as $preguntaId => $pregunta) {
                 $questionId = $pregunta['pregunta_id'] ?? null;
                 $respuesta = $pregunta['respuesta'] ?? null;
                 $respuestaFecha = $pregunta['respuesta_fecha'] ?? null;
-                $instancePregunta = $pregunta['instance'] ?? $instance; // Usar la instancia enviada en el formulario o la del sistema
+                $instancePregunta = $pregunta['instance'] ?? $instance; 
     
                 // Verificar que se haya enviado una respuesta válida
                 if (is_null($respuesta) || $respuesta === '') {
@@ -127,11 +119,23 @@ class EvaluationController extends Controller
     
         $recordEvaluation->status = $status;
         $recordEvaluation->save();
+
+        $user     = Auth::user();
+        $audience = new Audience(array(
+            'name'   => $user->name,
+            'email'  => $user->email,
+            'action' => 'INGRESO AL MODULO DE EVALUACION',
+        ));
+        $audience->save();
     
         return response()->json([
-            'faltan_preguntas' => !$isComplete,
-            'debug' => $request->all() 
+            'status' => $isComplete ? 'success' : 'warning',
+            'message' => $isComplete ? 'Evaluación guardada con éxito.' : '¡Atención! Recuerda que hay preguntas por responder.',
+            'hotelId' => $hotelId
         ]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Error al procesar la solicitud.'], 500);
+    }
     }
     
 
@@ -334,9 +338,10 @@ class EvaluationController extends Controller
         $recordEvaluation->status = $isComplete ? 1 : 0;
         $recordEvaluation->save();
 
-        return response()->json([
-            'faltan_preguntas' => !$isComplete
-        ]);
+        return redirect()->back()->with([
+            'status' => $isComplete ? 'success' : 'warning',
+            'message' => $isComplete ? 'Evaluación editada guardada con éxito.' : '¡Atención! Recuerda que hay preguntas por responder.',
+        ])->with('hotelId', $hotelId);
     }
 
 
@@ -350,20 +355,19 @@ class EvaluationController extends Controller
 
     public function enviarResultadoPorCorreo($evaluationId)
     {
-        if (request()->routeIs('enviar.resultados')) {
-            config(['preload' => false]); 
-        }
-        // Obtén el contenido HTML de la vista
         $viewContent = $this->calcularPuntaje($evaluationId);
 
-        // Envía el correo
-        Mail::html($viewContent, function ($message) {
-            $message->to('enyerlingmendoza2@gmail.com')
-                    ->subject('Resultados de la Evaluación');
-        });
+        $hotelId = RecordEvaluation::where('id', $evaluationId)->value('hotel_id');
 
-        // Redirige a la ruta deseada después de enviar el correo
-        return redirect()->route('admin.detalles_evaluacion', ['evaluationId' => $evaluationId ]);
+        $usuarios = User::where('hotel_id', $hotelId)->get();
+
+        foreach ($usuarios as $usuario) {
+            Mail::html($viewContent, function ($message) use ($usuario) {
+                $message->to($usuario->email)
+                        ->subject('Resultados de la Evaluación');
+            });
+        }
+        return redirect()->route('admin.detalles_evaluacion', ['evaluationId' => $evaluationId]);
     }
 
 

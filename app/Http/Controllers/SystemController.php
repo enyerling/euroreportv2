@@ -10,8 +10,8 @@ use Illuminate\Support\Facades\Auth;
 class SystemController extends Controller
 {
 
-    public function index()
-    {
+    public function systems(){
+
         $user = Auth::user();
         $audience = new Audience(array(
             'name' => $user->name,
@@ -19,11 +19,6 @@ class SystemController extends Controller
             'action' => 'INGRESO AL MODULO DE SISTEMAS',
         ));
         $audience->save();
-
-        return view('system.index');
-    }
-
-    public function systems(){
         
         $systems = System::orderBy('id', 'ASC')->paginate(10);
         return [

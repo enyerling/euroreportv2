@@ -85,7 +85,6 @@
 @endsection
 
 @section('js')
-    <script src="{{ asset('js/custom.js') }}"></script>
     <script> 
         document.getElementById('guardarConfigBtn').addEventListener('click', function(event) {
             event.preventDefault(); 

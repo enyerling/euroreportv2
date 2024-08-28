@@ -6,6 +6,9 @@
 @section('adminlte_css')
     @stack('css')
     @yield('css')
+    <meta name="theme-color" content="#6777ef"/>
+    <link rel="apple-touch-icon" href="{{ asset('vendor/adminlte/dist/img/logo_1.png.png') }}">
+    <link rel="manifest" href="{{ asset('/manifest.json') }}">
 @stop
 
 @section('classes_body', $layoutHelper->makeBodyClasses())
@@ -55,4 +58,32 @@
 @section('adminlte_js')
     @stack('js')
     @yield('js')
+    <script src="{{ asset('/sw.js') }}"></script>
+    <script>
+        if ('serviceWorker' in navigator && 'SyncManager' in window) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                .then(registration => {
+                    console.log('Service Worker registrado con éxito:', registration);
+
+                    // Verifica si el SyncManager está disponible
+                    navigator.serviceWorker.ready.then(registration => {
+                        // Registra la sincronización de evaluaciones
+                        registration.sync.register('sync-evaluations')
+                        .then(() => {
+                            console.log('Sincronización de evaluaciones solicitada.');
+                        })
+                        .catch(error => {
+                            console.error('Error al solicitar la sincronización de evaluaciones:', error);
+                        });
+                    });
+                })
+                .catch(error => {
+                    console.error('Error al registrar el Service Worker:', error);
+                });
+            });
+        } else {
+            console.log('Service Worker o SyncManager no están disponibles.');
+        }
+    </script>
 @stop
