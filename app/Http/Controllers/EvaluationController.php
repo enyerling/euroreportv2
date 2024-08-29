@@ -20,6 +20,9 @@ use Illuminate\Support\Facades\View;
 
 class EvaluationController extends Controller
 {
+    /*Esta funcion obtiene y estructurar las preguntas asociadas a los sistemas de un hotel específico, 
+    según la configuración establecida en la base de datos. Luego, estas preguntas se muestran en una 
+    vista de evaluación.*/
 
     public function showPreguntasEval($hotelId) {
         // Obtener los sistemas asociados con el hotel
@@ -70,77 +73,85 @@ class EvaluationController extends Controller
         return view('admin.form_evaluacion', compact('preguntasPorSistema', 'hotelId'));
     }
     
+    /*Esta funcion guarda la evaluación de un hotel, registrando las respuestas a cada pregunta y actualizando 
+    el estado de la evaluación. También registra la acción del usuario para fines de auditoría.*/
         
     public function saveEvaluacion(Request $request) {  
-    try { 
-        $hotelId = $request->input('hotel_id');
-        $status = $request->input('status', 1);
+        try { 
+            // Obtener datos del hotel y estado de la evaluación del request
+            $hotelId = $request->input('hotel_id');
+            $status = $request->input('status', 1);
+
+            // Crear el registro de evaluación
+            $recordEvaluation = RecordEvaluation::create([
+                'hotel_id' => $hotelId,
+                'status' => $status,
+            ]);
         
-        // Crear el registro de evaluación
-        $recordEvaluation = RecordEvaluation::create([
-            'hotel_id' => $hotelId,
-            'status' => $status,
-        ]);
-    
-        $recordId = $recordEvaluation->id;
-        $isComplete = true;
-    
-        foreach ($request->input('sistemas') as $sistemaIndex => $sistema) {
-            $systemId = $sistema['system_id'];
-            $instance = $sistema['instance'];
-            $preguntas = $sistema['preguntas'];
-    
-            foreach ($preguntas as $preguntaId => $pregunta) {
-                $questionId = $pregunta['pregunta_id'] ?? null;
-                $respuesta = $pregunta['respuesta'] ?? null;
-                $respuestaFecha = $pregunta['respuesta_fecha'] ?? null;
-                $instancePregunta = $pregunta['instance'] ?? $instance; 
-    
-                // Verificar que se haya enviado una respuesta válida
-                if (is_null($respuesta) || $respuesta === '') {
-                    $status = '0'; // Si alguna respuesta está vacía, el estado es incompleto
-                    $isComplete = false;
-                }
-    
-                if ($questionId) {
-                    // Guardar la evaluación
-                    Evaluation::create([
-                        'record_evaluation_id' => $recordId,
-                        'system_id' => $systemId,
-                        'question_id' => $questionId,
-                        'answer' => $respuesta,
-                        'date' => $respuestaFecha,
-                        'room' => $sistema['numero_habitacion'] ?? null,
-                        'instance' => $instancePregunta, // Usar la instancia correcta
-                    ]);
+            $recordId = $recordEvaluation->id;
+            $isComplete = true;
+
+            // Iterar sobre los sistemas y preguntas del request
+            foreach ($request->input('sistemas') as $sistemaIndex => $sistema) {
+                $systemId = $sistema['system_id'];
+                $instance = $sistema['instance'];
+                $preguntas = $sistema['preguntas'];
+        
+                foreach ($preguntas as $preguntaId => $pregunta) {
+                    $questionId = $pregunta['pregunta_id'] ?? null;
+                    $respuesta = $pregunta['respuesta'] ?? null;
+                    $respuestaFecha = $pregunta['respuesta_fecha'] ?? null;
+                    $instancePregunta = $pregunta['instance'] ?? $instance; 
+        
+                    // Verificar que se haya enviado una respuesta válida
+                    if (is_null($respuesta) || $respuesta === '') {
+                        $status = '0'; // Si alguna respuesta está vacía, el estado es incompleto
+                        $isComplete = false;
+                    }
+        
+                    if ($questionId) {
+                        // Guardar la evaluación
+                        Evaluation::create([
+                            'record_evaluation_id' => $recordId,
+                            'system_id' => $systemId,
+                            'question_id' => $questionId,
+                            'answer' => $respuesta,
+                            'date' => $respuestaFecha,
+                            'room' => $sistema['numero_habitacion'] ?? null,
+                            'instance' => $instancePregunta, // Usar la instancia correcta
+                        ]);
+                    }
                 }
             }
-        }
-    
-        $recordEvaluation->status = $status;
-        $recordEvaluation->save();
+            // Actualizar el estado final de la evaluación
+            $recordEvaluation->status = $status;
+            $recordEvaluation->save();
 
-        $user     = Auth::user();
-        $audience = new Audience(array(
-            'name'   => $user->name,
-            'email'  => $user->email,
-            'action' => 'INGRESO AL MODULO DE EVALUACION',
-        ));
-        $audience->save();
-    
-        return response()->json([
-            'status' => $isComplete ? 'success' : 'warning',
-            'message' => $isComplete ? 'Evaluación guardada con éxito.' : '¡Atención! Recuerda que hay preguntas por responder.',
-            'hotelId' => $hotelId
-        ]);
-    } catch (\Exception $e) {
-        return response()->json(['error' => 'Error al procesar la solicitud.'], 500);
+                // Registrar la acción del usuario para auditoría
+                $user     = Auth::user();
+                $audience = new Audience(array(
+                    'name'   => $user->name,
+                    'email'  => $user->email,
+                    'action' => 'INGRESO AL MODULO DE EVALUACION',
+                ));
+                $audience->save();
+                
+            // Retornar la respuesta en formato JSON
+            return response()->json([
+                'status' => $isComplete ? 'success' : 'warning',
+                'message' => $isComplete ? 'Evaluación guardada con éxito.' : '¡Atención! Recuerda que hay preguntas por responder.',
+                'hotelId' => $hotelId
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error al procesar la solicitud.'], 500);
+        }
     }
-    }
     
+    /*Esta funcion calcula el puntaje de una evaluación específica, basándose en las respuestas proporcionadas 
+    por el usuario,y genera una vista con los resultados detallados por sistema, incluyendo observaciones.*/
 
     public function calcularPuntaje($recordId) {
-        
+        // Obtener la evaluacion asociada a un record de evaluación
         $evaluations = Evaluation::where('record_evaluation_id', $recordId)
             ->with('question')
             ->get();
@@ -148,16 +159,19 @@ class EvaluationController extends Controller
         $scoresBySystem = [];
         $totalScore = 0;
 
+        // Iterar sobre la evaluación para calcular el puntaje por sistema
         foreach ($evaluations as $evaluation) {
             $question = $evaluation->question;
             $systemId = $question->system_id;
             $expectedValue = $question->expected_value;
-    
+            
+            // Verificar si la respuesta es correcta
             $isCorrect = ($evaluation->answer == $expectedValue);
     
             $system = System::find($systemId);
             $systemScore = $system->score;
-    
+            
+            // Inicializar la estructura para almacenar puntajes por sistema
             if (!isset($scoresBySystem[$systemId])) {
                 $scoresBySystem[$systemId] = [
                     'systemName' => $system->name,
@@ -167,7 +181,8 @@ class EvaluationController extends Controller
                     'systemScore' => $systemScore
                 ];
             }
-    
+            
+            // Calcular el puntaje parcial del sistema
             $scoresBySystem[$systemId]['totalQuestions']++;
             if ($isCorrect) {
                 $scoresBySystem[$systemId]['correctAnswers']++;
@@ -175,11 +190,12 @@ class EvaluationController extends Controller
             $scoresBySystem[$systemId]['score'] = round(($scoresBySystem[$systemId]['correctAnswers'] / $scoresBySystem[$systemId]['totalQuestions']) * $systemScore,2);
         }
     
-        // Calcular el puntaje total
+        // Calcular el puntaje total sumando los puntajes de todos los sistemas
         foreach ($scoresBySystem as $systemScore) {
             $totalScore += $systemScore['score'];
         }
 
+        // Obtener información adicional del hotel y las observaciones
         $record = RecordEvaluation::find($recordId);
         $hotel = $record->hotel; 
         $hotelName = $hotel->name;
@@ -187,51 +203,74 @@ class EvaluationController extends Controller
         $issueDate = now()->format('d-m-Y');
 
         $observations = Observations::where('record_evaluation_id', $recordId)->get();
-    
-        return view('admin.resultEvaluation', ['scoresBySystem' => $scoresBySystem,'totalScore' => $totalScore, 'observations' => $observations,
-        'recordId' => $recordId , 'hotelName' => $hotelName,'managerName' => $managerName,'issueDate' => $issueDate])->render();
+        
+        // Retornar la vista con los resultados del puntaje y otros datos relevantes
+        return view('admin.resultEvaluation', [
+            'scoresBySystem' => $scoresBySystem,
+            'totalScore' => $totalScore, 
+            'observations' => $observations,
+            'recordId' => $recordId , 
+            'hotelName' => $hotelName,
+            'managerName' => $managerName,
+            'issueDate' => $issueDate
+            ])->render();
     }
+
+    /*Esta funcion muestra las evaluaciones completadas para un hotel específico, 
+    permitiendo filtrar por rango de fechas y estado, y genera una vista con los resultados filtrados.*/
 
     public function showEvalCompleted(Request $request,$hotelId)
     {
-
+        // Obtener el hotel especificado
         $hotel = Hotel::find($hotelId);
 
+        // Iniciar una consulta de las evaluaciones asociadas al hotel
         $query = $hotel->recordEvaluations();
 
+        // Filtrar por rango de fechas si se especifican en la solicitud
         if ($request->has('fecha_inicio') && $request->has('fecha_fin')) {
             $fechaInicio = $request->input('fecha_inicio');
             $fechaFin = $request->input('fecha_fin');
             $query->whereBetween('created_at', [$fechaInicio, $fechaFin]);
         }
-    
+        
+        // Filtrar por estado si se especifica en la solicitud
         if ($request->has('status')) {
             $status = $request->input('status');
             if ($status !== null) {
                 $query->where('status', $status);
             }
         }
-    
+        
+        // Obtener las evaluaciones completadas según los filtros aplicados
         $completedEvaluations = $query->get();
 
-
+        // Retornar la vista con las evaluaciones y el hotel
         return view('admin.eval_completed', compact('hotel', 'completedEvaluations'));
     }
 
+    /*Esta funcion muestra las evaluaciones asociadas a un registro específico, 
+    incluyendo información sobre el hotel y su administrador, y renderiza una vista con estos datos.*/
     public function showEvaluation($recordId)
     {
+        // Obtener las evaluaciones relacionadas con el registro dado
         $evaluations = Evaluation::where('record_evaluation_id', $recordId)
         ->with(['question', 'system'])
         ->get();
 
+        // Obtener el registro de la evaluación y el hotel asociado
         $recordEvaluation = RecordEvaluation::find($recordId);
         $hotel = $recordEvaluation->hotel;
 
+        // Obtener el nombre del hotel y el administrador
         $hotelName = $hotel->name;
         $hotelmanager= $hotel->manager;
 
         return view('admin.show_evaluation', ['evaluations' => $evaluations, 'hotelName' => $hotelName,'managerName' => $hotelmanager]);
     }
+
+    /*Esta funcion permite editar una evaluación existente, obteniendo las respuestas asociadas y las preguntas 
+    correspondientes a los sistemas del hotel para ser mostradas en una vista de edición.*/
 
     public function editarEvaluacion($recordEvaluationId)
     {
@@ -254,12 +293,14 @@ class EvaluationController extends Controller
                 })
                 ->with('accessorie')
                 ->get();
-    
+                
+            // Repetir las preguntas según la cantidad de sistemas
             for ($i = 1; $i <= $systemCantidad; $i++) {
                 $preguntasPorSistema[] = [
                     'system' => $system->name . ' ' . $i,
                     'system_id' => $system->id,
                     'instance' => $i,
+                    // Mapear preguntas y sus respuestas asociadas
                     'preguntas' => $questionsForSystem->map(function ($question) use ($hotelId, $recordEvaluationId, $i) {
                         $cantidad = $question->question_hotel
                             ->where('hotel_id', $hotelId)
@@ -289,36 +330,47 @@ class EvaluationController extends Controller
                 ];
             }
         }
-    
+        // Renderizar la vista de edición de evaluación con los datos obtenidos
         return view('admin.eval_edit', compact('preguntasPorSistema', 'recordEvaluation', 'hotelId'));
     }
+
+    /*Esta funcion se encarga de procesar y actualizar una evaluación existente en la aplicacion. 
+    Permite actualizar las respuestas de las preguntas, verificar si la evaluación está completa 
+    y cambiar su estado en consecuencia. */
      
     public function actualizarEvaluacion(Request $request)
     {
+        // Obtener los datos de la evaluación y el hotel
         $recordEvaluationId = $request->input('evaluationId');
         $hotelId = $request->input('hotel_id');
 
+        // Buscar la evaluación y actualizar su estado
         $recordEvaluation = RecordEvaluation::findOrFail($recordEvaluationId);
         $recordEvaluation->status = $request->input('status', $recordEvaluation->status);
         $recordEvaluation->save();
 
+        // Obtener los sistemas del hotel y organizar por 'system_id'
         $hotelSystems = HotelSystem::where('hotel_id', $hotelId)->get()->keyBy('system_id');
-        $isComplete = true;
+        $isComplete = true; // Bandera para verificar si la evaluación está completa
 
+        // Procesar cada sistema y sus preguntas
         foreach ($request->input('sistemas') as $sistemaIndex => $sistema) {
             $systemId = $sistema['system_id'];
-            $cantidad = $hotelSystems[$systemId]->cant;
+            $cantidad = $hotelSystems[$systemId]->cant; 
             $numeroHabitacion = $sistema['numero_habitacion'] ?? null;
 
+            // Procesar cada pregunta del sistema
             foreach ($sistema['preguntas'] as $preguntaId => $pregunta) {
                 $respuesta = $pregunta['respuesta'] ?? null;
                 $respuestaFecha = $pregunta['respuesta_fecha'] ?? null;
-                $instance = $sistema['instance'];
+                $instance = $sistema['instance']; // Instancia del sistema
 
+                // Verificar si la respuesta es nula o vacía
                 if (is_null($respuesta) || $respuesta === '') {
                     $isComplete = false;
                 }
 
+                // Crear o actualizar la respuesta en la base de datos
                 Evaluation::updateOrCreate(
                     [
                         'record_evaluation_id' => $recordEvaluationId,
@@ -335,39 +387,52 @@ class EvaluationController extends Controller
                 );
             }
         }
+        // Actualizar el estado de la evaluación 
         $recordEvaluation->status = $isComplete ? 1 : 0;
         $recordEvaluation->save();
 
+        // Redirigir con un mensaje de éxito o advertencia
         return redirect()->back()->with([
             'status' => $isComplete ? 'success' : 'warning',
             'message' => $isComplete ? 'Evaluación editada guardada con éxito.' : '¡Atención! Recuerda que hay preguntas por responder.',
         ])->with('hotelId', $hotelId);
     }
 
+    /*Esta funcion tiene como propósito eliminar un registro de evaluación específico basado en el ID proporcionado*/
 
     public function destroy($recordId)
     {
         $recordEvaluation = RecordEvaluation::findOrFail($recordId);
+        // Eliminar el registro de evaluación de la base de datos
         $recordEvaluation->delete();
 
        return back();
     }
 
+    /*Esta función calcular el puntaje de una evaluación, generar el contenido de la vista de los resultados, 
+    y luego enviar esos resultados por correo electrónico a todos los usuarios asociados con el hotel 
+    correspondiente a esa evaluación.*/
+
     public function enviarResultadoPorCorreo($evaluationId)
     {
+        // Calcular el puntaje y obtener el contenido de la vista con los resultados
         $viewContent = $this->calcularPuntaje($evaluationId);
 
+         // Obtener el ID del hotel asociado con la evaluaciós
         $hotelId = RecordEvaluation::where('id', $evaluationId)->value('hotel_id');
 
+        // Obtener los usuarios asociados con el hotel 
         $usuarios = User::where('hotel_id', $hotelId)->get();
 
+        // Enviar el correo electrónico a cada usuario
         foreach ($usuarios as $usuario) {
             Mail::html($viewContent, function ($message) use ($usuario) {
                 $message->to($usuario->email)
                         ->subject('Resultados de la Evaluación');
             });
         }
-        return redirect()->route('admin.detalles_evaluacion', ['evaluationId' => $evaluationId]);
+        return redirect()->route('admin.detalles_evaluacion', ['evaluationId' => $evaluationId])
+        ->with('success', 'Los correos han sido enviados a los usuarios pertinentes.');;
     }
 
 

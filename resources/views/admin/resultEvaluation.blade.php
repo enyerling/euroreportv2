@@ -3,6 +3,11 @@
 @section('title', 'Puntaje Evaluación')
 
 @section('content')
+    @if(session('success'))
+        <div id="successMessage" class="alert alert-success">
+            {{ session('success') }}
+        </div>
+    @endif
 <div class="container">
     <br>
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -215,6 +220,22 @@
             pdf.save('Resultado_evaluacion.pdf');
         });
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Selecciona el mensaje de éxito
+        const successMessage = document.getElementById('successMessage');
+            
+        // Si el mensaje existe, ocúltalo después de 5 segundos
+        if (successMessage) {
+            setTimeout(() => {
+                successMessage.style.opacity = '0'; // Desvanecer el mensaje
+                setTimeout(() => {
+                    successMessage.style.display = 'none'; // Ocultar el mensaje completamente
+                }, 1000); // Tiempo de desvanecimiento
+            }, 5000); // Tiempo para mostrar el mensaje
+        }
+    });
 </script>
+
 
 @stop

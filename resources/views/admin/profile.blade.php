@@ -120,6 +120,7 @@
         </div>
     </div>
 </div>
+<!--Modal para guardar cambios-->
 <div class="modal fade" id="successModal" tabindex="-1" role="dialog" aria-labelledby="successModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content" style="border-radius: 8px;">

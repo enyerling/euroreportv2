@@ -79,7 +79,7 @@
     </form>
 </div>
 
-
+<!--Modal para despues de editar mostrar resultado-->
 <div class="modal fade" id="resultModal" tabindex="-1" role="dialog" aria-labelledby="resultModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
