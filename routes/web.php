@@ -64,6 +64,8 @@ Auth::routes();
     //Observaciones
     Route::get('/observations/evaluations/{record_evaluation_id}',[ObservationController::class, 'observaciones'])->name('admin.observations');
     Route::post('/save/observations',[ObservationController::class, 'saveObservations'])->name('admin.guardar_observations');
+    Route::delete('delete/observations', [ObservationController::class, 'destroy'])->name('admin.observations.destroy');
+    Route::delete('detele/images', [ObservationController::class, 'destroyImages'])->name('admin.images.destroy');
 
     //usuarios
     Route::get('/users', [UserController::class, 'showAll'])->name('admin.users');
@@ -75,7 +77,7 @@ Auth::routes();
     Route::patch('/update/profile', [UserController::class, 'updateprofile'])->name('profile.update');
     Route::get('/profile', [UserController::class, 'profile'])->name('profile');
 
-    Route::get('/enviar-resultados/{evaluationId}', [EvaluationController::class, 'enviarResultadoPorCorreo'])->name('enviar.resultados');
+    Route::post('/sendresults/{evaluationId}', [EvaluationController::class, 'enviarResultadoPorCorreo'])->name('enviar.resultados');
 
     });
 

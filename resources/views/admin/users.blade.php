@@ -2,10 +2,6 @@
 
 @section('title', 'Usuarios')
 
-@section('css')
-    <link rel="stylesheet" href="{{ asset('css/custom.css') }}">
-@endsection
-
 @section('content_header')
     <div class="d-flex justify-content-between align-items-center">
         <h1>Usuarios</h1>
@@ -16,6 +12,14 @@
 @endsection
 
 @section('content')
+@if (session('success'))
+    <div class="alert alert-primary alert-dismissible fade show" role="alert" id="success-alert">
+        {{ session('success') }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+@endif
 <div class="container">
     <div class="card">
             <div class="card-tools">
@@ -225,6 +229,21 @@
                         row.style.display = match ? '' : 'none';
                     });
                 });
+            });
+
+             //Script para mostrar mensaje de exito por 43 segundos 
+             document.addEventListener("DOMContentLoaded", function() {
+            // Configura un temporizador de 3 segundos para ocultar la alerta
+                setTimeout(function() {
+                    var alert = document.getElementById('success-alert');
+                    if (alert) {
+                        alert.classList.remove('show'); 
+                        alert.classList.add('fade');    
+                        setTimeout(function() {
+                            alert.remove(); 
+                        }, 300); 
+                    }
+                }, 2000); 
             });
     </script>
         

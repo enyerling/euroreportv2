@@ -28,8 +28,7 @@ class Evaluation extends Model
     public function recordEvaluation()
     {
         return $this->belongsTo('App\Models\RecordEvaluation');
-    }
-
+    }     
 
 }
 

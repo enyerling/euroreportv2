@@ -48,53 +48,73 @@
                 <button type="button" class="btn btn-secondary" onclick="window.history.back()">Volver</button>
             </div>
         </form>
-
-        <script>
-            document.getElementById('imagenes').addEventListener('change', function(event) {
-                const preview = document.getElementById('preview');
-                preview.innerHTML = ''; // Clear previous previews
-
-                for (const file of event.target.files) {
-                    if (file && file.type.startsWith('image/')) {
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            const img = document.createElement('img');
-                            img.src = e.target.result;
-                            img.classList.add('img-thumbnail');
-                            img.style.width = '150px';
-                            img.style.margin = '5px';
-                            preview.appendChild(img);
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                }
-            });
-
-            document.getElementById('tomarFoto').addEventListener('change', function(event) {
-                const preview = document.getElementById('preview');
-                preview.innerHTML = ''; // Clear previous previews
-
-                if (event.target.files.length > 0) {
-                    const file = event.target.files[0];
-                    if (file && file.type.startsWith('image/')) {
-                        const reader = new FileReader();
-                        reader.onload = function(e) {
-                            const img = document.createElement('img');
-                            img.src = e.target.result;
-                            img.classList.add('img-thumbnail');
-                            img.style.width = '150px';
-                            img.style.margin = '5px';
-                            preview.appendChild(img);
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                }
-            });
-        </script>
-
         </div>
     </div>
 </div>
+
+<script>
+    document.getElementById('imagenes').addEventListener('change', function(event) {
+        const preview = document.getElementById('preview');
+        preview.innerHTML = ''; // Limpiar vistas previas anteriores
+
+        const files = Array.from(event.target.files); // Convertir FileList a Array
+
+        files.forEach((file, index) => {
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const container = document.createElement('div'); // Contenedor para imagen + botón
+                    container.classList.add('position-relative', 'd-inline-block', 'm-2');
+
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.classList.add('img-thumbnail');
+                    img.style.width = '150px';
+
+                    // Botón de eliminación
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.classList.add('btn', 'btn-danger', 'btn-sm', 'position-absolute', 'top-0', 'right-0');
+                    deleteBtn.textContent = 'X';
+                    deleteBtn.style.top = '0';
+                    deleteBtn.style.right = '0';
+                    deleteBtn.style.position = 'absolute';
+
+                    // Evento para eliminar la imagen de la vista previa
+                    deleteBtn.addEventListener('click', function() {
+                        files.splice(index, 1); // Elimina el archivo del array
+                        container.remove(); // Elimina el contenedor de la imagen
+                    });
+
+                    container.appendChild(img);
+                    container.appendChild(deleteBtn);
+                    preview.appendChild(container);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    });
+
+    document.getElementById('tomarFoto').addEventListener('change', function(event) {
+        const preview = document.getElementById('preview');
+        preview.innerHTML = ''; // Clear previous previews
+
+        if (event.target.files.length > 0) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.classList.add('img-thumbnail');
+                    img.style.width = '150px';
+                    img.style.margin = '5px';
+                    preview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    });
+    </script>
 
 @endsection
 

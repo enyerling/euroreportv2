@@ -14,9 +14,15 @@ use App\Models\RecordEvaluation;
 use App\Models\Evaluation;
 use App\Models\Observations;
 use App\Models\User;
+use App\Models\Images;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\View;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
+use App\Mail\ResultadoEvaluacionMail;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class EvaluationController extends Controller
 {
@@ -69,7 +75,6 @@ class EvaluationController extends Controller
                 ];
             }
         }
-        
         return view('admin.form_evaluacion', compact('preguntasPorSistema', 'hotelId'));
     }
     
@@ -92,10 +97,10 @@ class EvaluationController extends Controller
             $isComplete = true;
 
             // Iterar sobre los sistemas y preguntas del request
-            foreach ($request->input('sistemas') as $sistemaIndex => $sistema) {
+            foreach ($request->input('sistemas', []) as $sistemaIndex => $sistema) {
                 $systemId = $sistema['system_id'];
                 $instance = $sistema['instance'];
-                $preguntas = $sistema['preguntas'];
+                $preguntas = $sistema['preguntas'] ?? [];
         
                 foreach ($preguntas as $preguntaId => $pregunta) {
                     $questionId = $pregunta['pregunta_id'] ?? null;
@@ -137,11 +142,21 @@ class EvaluationController extends Controller
                 $audience->save();
                 
             // Retornar la respuesta en formato JSON
-            return response()->json([
-                'status' => $isComplete ? 'success' : 'warning',
-                'message' => $isComplete ? 'Evaluación guardada con éxito.' : '¡Atención! Recuerda que hay preguntas por responder.',
-                'hotelId' => $hotelId
-            ]);
+            if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+                // Si la solicitud es AJAX, devuelve JSON
+                return response()->json([
+                    'status' => $isComplete ? 'success' : 'warning',
+                    'message' => $isComplete ? 'Evaluación guardada con éxito.' : '¡Atención! Recuerda que hay preguntas por responder.',
+                    'hotelId' => $hotelId
+                ]);
+            } else {
+                // Si la solicitud no es AJAX, redirige a la página de resultados
+                return redirect()->back()->with([
+                    'status' => $isComplete ? 'success' : 'warning',
+                    'message' => $isComplete ? 'Evaluación guardada con éxito.' : '¡Atención! Recuerda que hay preguntas por responder.',
+                    'hotelId' => $hotelId
+                ]);
+            }
         } catch (\Exception $e) {
             return response()->json(['error' => 'Error al procesar la solicitud.'], 500);
         }
@@ -158,6 +173,8 @@ class EvaluationController extends Controller
     
         $scoresBySystem = [];
         $totalScore = 0;
+
+        $images = Images::where('record_evaluation_id', $recordId)->get();
 
         // Iterar sobre la evaluación para calcular el puntaje por sistema
         foreach ($evaluations as $evaluation) {
@@ -212,7 +229,8 @@ class EvaluationController extends Controller
             'recordId' => $recordId , 
             'hotelName' => $hotelName,
             'managerName' => $managerName,
-            'issueDate' => $issueDate
+            'issueDate' => $issueDate,
+            'images' => $images
             ])->render();
     }
 
@@ -320,6 +338,7 @@ class EvaluationController extends Controller
                             'id' => $question->id,
                             'name' => $question->name,
                             'type' => $question->type,
+                            'date' => $question->answer,
                             'answer' => $answer ? $answer->answer : null,
                             'respuesta_fecha' => $answer ? $answer->date : null,
                             'room' => $answer ? $answer->room : null,
@@ -413,29 +432,37 @@ class EvaluationController extends Controller
     y luego enviar esos resultados por correo electrónico a todos los usuarios asociados con el hotel 
     correspondiente a esa evaluación.*/
 
-    public function enviarResultadoPorCorreo($evaluationId)
+    public function enviarResultadoPorCorreo(Request $request, $recordId)
     {
-        // Calcular el puntaje y obtener el contenido de la vista con los resultados
-        $viewContent = $this->calcularPuntaje($evaluationId);
+        try {
+            // Verificar si la evaluación existe
+            $evaluation = RecordEvaluation::findOrFail($recordId);
+    
+            // Obtener los usuarios asociados con el hotel
+            $hotelId = $evaluation->hotel_id;
+            $usuariosHotel = User::where('hotel_id', $hotelId)->get();
 
-         // Obtener el ID del hotel asociado con la evaluaciós
-        $hotelId = RecordEvaluation::where('id', $evaluationId)->value('hotel_id');
+            $usuariosAdmin = User::role('admin')->get();
 
-        // Obtener los usuarios asociados con el hotel 
-        $usuarios = User::where('hotel_id', $hotelId)->get();
-
-        // Enviar el correo electrónico a cada usuario
-        foreach ($usuarios as $usuario) {
-            Mail::html($viewContent, function ($message) use ($usuario) {
-                $message->to($usuario->email)
-                        ->subject('Resultados de la Evaluación');
-            });
+            $usuarios = $usuariosHotel->merge($usuariosAdmin)->unique('email');
+    
+            // Obtener el PDF desde la solicitud
+            $pdf = $request->file('pdf');
+            $pdfData = file_get_contents($pdf->getRealPath());
+    
+            // Enviar el correo electrónico a cada usuario
+            foreach ($usuarios as $usuario) {
+                Mail::to($usuario->email)->send(new ResultadoEvaluacionMail($pdfData));
+            }
+    
+            return response()->json(['success' => true]);
+    
+        } catch (\Exception $e) {
+            // Log the error and return a response
+            \Log::error('Error al enviar el PDF: ' . $e->getMessage());
+            return response()->json(['error' => 'Error al enviar el PDF.'], 500);
         }
-        return redirect()->route('admin.detalles_evaluacion', ['evaluationId' => $evaluationId])
-        ->with('success', 'Los correos han sido enviados a los usuarios pertinentes.');;
     }
-
-
 }
     
 

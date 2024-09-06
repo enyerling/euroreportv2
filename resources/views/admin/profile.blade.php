@@ -19,6 +19,7 @@
                     <!-- Nombre del Usuario -->
                     <h4>{{ Auth::user()->name }}</h4>
                     <p class="text-muted">{{ Auth::user()->email }}</p>
+                    <p class="text-muted">Rol: {{ Auth::user()->getRoleNames()->implode(', ') }}</p>
                 </div>
             </div>
         </div>

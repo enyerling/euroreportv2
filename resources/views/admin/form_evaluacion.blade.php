@@ -156,22 +156,7 @@
                 const formData = new FormData(this);
                 if (navigator.onLine) {
                     // Enviar formulario si hay conexión
-                    fetch(this.action, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': formData.get('_token'),
-                            'Content-Type': 'application/x-www-form-urlencoded'
-                        },
-                        body: new URLSearchParams(formData).toString()
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        showModal(data.status, data.message);
-                    })
-                    .catch(() => {
-                        console.error('Error al conectar con el servidor:', error);
-                        showModal('error', 'Error al conectar con el servidor.');
-                    });
+                    this.submit();
                 } else {
                     // Guardar en IndexedDB si está offline
                     saveFormOffline(formData);
@@ -256,7 +241,8 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': evaluation._token
+                            'X-CSRF-TOKEN': evaluation._token,
+                            'X-Requested-With': 'XMLHttpRequest'
                         },
                         body: JSON.stringify(evaluation)
                     })
@@ -316,31 +302,6 @@
             });
         }
 
-        function submitFormOnline(formData) {
-            fetch('/save/evaluation', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': formData.get('_token')
-                },
-                body: JSON.stringify(Object.fromEntries(formData.entries()))
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.text().then(text => {
-                        throw new Error(`HTTP error! status: ${response.status}, response: ${text}`);
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Mostrar modal de éxito
-                showModal(data.status, data.message);
-            })
-            .catch(error => {
-                // Mostrar modal de error
-                showModal('error', error.message || 'Error al sincronizar datos con el servidor.');
-            });
-        }
+        
     </script>
 @stop

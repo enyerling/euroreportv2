@@ -55,7 +55,7 @@ class UserController extends Controller
         //Asigna rol
         $user->assignRole($request->role);
 
-        return redirect()->route('admin.users');
+        return redirect()->route('admin.users')->with('success', 'Usuario agregado exitosamente.');
 
     }
 

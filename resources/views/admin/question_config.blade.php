@@ -53,7 +53,7 @@
                                             @endif
                                         @else
                                             <ul class="list-group" id="system_{{ $hotelSystem->system->id }}">
-                                            <button type="button" class="btn btn-secondary btn-sm mb-2" onclick="selectAll('system_{{ $hotelSystem->system->id }}')">Seleccionar Todas</button>
+                                            <button type="button" class="btn btn-secondary btn-sm mb-2" onclick="selectAll('system_{{ $hotelSystem->system->id }}')"><i class="fa fa-check-square text-black"></i>  Seleccionar Todas</button>
                                                 @foreach($questionsGrouped[$hotelSystem->system->id] as $question)
                                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                                         <div class="form-check">
@@ -137,7 +137,7 @@
                     // Muestra el modal si la configuración se guardó con éxito
                     $('#configuracionModal').modal('show');
                     document.getElementById('modalContinuarBtn').addEventListener('click', function() {
-                        window.location.href = "{{ route('admin.hoteles') }}";
+                        window.location.href = "{{ route('admin.dashboard') }}";
                     });
                 } else {
                     throw new Error(data.message || 'Error al guardar la configuración');

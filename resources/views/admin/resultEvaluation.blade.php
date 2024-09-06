@@ -3,27 +3,35 @@
 @section('title', 'Puntaje Evaluación')
 
 @section('content')
-    @if(session('success'))
-        <div id="successMessage" class="alert alert-success">
-            {{ session('success') }}
-        </div>
-    @endif
+@if(session('success'))
+    <div class="alert alert-primary alert-dismissible fade show" role="alert" id="success-alert">
+        {{ session('success') }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+@endif
 <div class="container">
     <br>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="text-center mb-0">Resultados de la Evaluación</h2>
         
         @role('admin|subadmin')
-        <a href="{{ route('admin.observations', ['record_evaluation_id' => $recordId]) }}" class="btn btn-primary">
-            <i class="fas fa-plus"></i>Observaciones
-        </a>
+        <div class="d-flex justify-content-start align-items-center mb-3">
+            <a href="{{ route('admin.observations', ['record_evaluation_id' => $recordId]) }}" class="btn btn-primary mr-2">
+                <i class="fas fa-plus"></i> Observaciones
+            </a>
+            <a class="btn btn-success" title="Enviar correo" onclick="exportToPDFAndSendEmail()">
+                <i class="fa fa-envelope"></i>
+            </a>
+        </div>
         @endrole
         
     </div>
 
     <div class="alert alert-secondary text-center">
         <a>
-        <h4>Puntaje Total: {{ number_format($totalScore, 2) }}  <a href="{{ route('admin.ver_evaluacion', ['recordId' => $recordId]) }}" class="btn btn-dark btn-sm float-right">
+        <h4>Puntaje Total: {{ number_format($totalScore, 2) }}  <a href="{{ route('admin.ver_evaluacion', ['recordId' => $recordId]) }}" class="btn btn-dark btn-sm float-right" title="Ver mas detalles">
         <i class="fas fa-eye"></i> 
         </a></h4>
     </div>
@@ -93,18 +101,56 @@
 
     <!-- Sección de Observaciones -->
     @if($observations->isNotEmpty())
-    <div class="card card-dark mb-4">
-        <div class="card-header">
-            <h3 class="card-title">Observaciones</h3>
-        </div>
-        <div class="card-body">
-            <ul class="list-group">
-                @foreach($observations as $observation)
-                    <li class="list-group-item">{{ $observation->answer }}</li>
+        @foreach($observations as $observation)
+            <div class="card card-dark mb-4">
+                <div class="card-header d-flex align-items-center">
+                    <h3 class="card-title mb-0">Observaciones</h3>
+                    <div class="ml-auto">
+                        <form action="{{ route('admin.observations.destroy') }}" method="POST" style="margin-left: auto;">
+                            @csrf
+                            @method('DELETE')
+                            <input type="hidden" name="observation_id" value="{{ $observation->id }}">
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                <i class="fa fa-times"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group">
+                        <li class="list-group-item">{{ $observation->answer }}</li>
+                    </ul>
+                </div>
+            </div>
+        @endforeach
+    @endif
+
+    @if($images->isNotEmpty())
+        <div class="card card-dark mb-4">
+            <div class="card-header d-flex align-items-center">
+                <h3 class="card-title mb-0">Imagenes subidas de observaciones</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                @foreach($images as $image)
+                    <div class="col-md-3 mb-3">
+                        <div class="card">
+                            <form action="{{ route('admin.images.destroy') }}" method="POST" style="margin-left: auto;">
+                                @csrf
+                                @method('DELETE')
+                                <input type="hidden" name="image_id" value="{{ $image->id }}">
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </form>
+                            <img src="{{ asset('storage/' . $image->path) }}" class="card-img-top" alt="Imagen">
+                        </div>
+                    </div>
+                    
                 @endforeach
-            </ul>
+                </div>
+            </div>
         </div>
-    </div>
     @endif
 
     <center>
@@ -112,10 +158,29 @@
         <i class="fas fa-file-pdf"></i> Exportar a PDF
     </button>
     </center>
-</div>
 
+    <!-- Modal -->
+<div class="modal fade" id="emailSentModal" tabindex="-1" role="dialog" aria-labelledby="emailSentModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="emailSentModalLabel">Correo Enviado</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        El PDF ha sido enviado correctamente por correo.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
 <br>
-@stop
+@endsection
 
 @section('js')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -217,25 +282,84 @@
                 heightLeft -= pageHeight;
             }
 
-            pdf.save('Resultado_evaluacion.pdf');
+            pdf.save('Resultado_Evaluacion.pdf');
         });
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        // Selecciona el mensaje de éxito
-        const successMessage = document.getElementById('successMessage');
-            
-        // Si el mensaje existe, ocúltalo después de 5 segundos
-        if (successMessage) {
-            setTimeout(() => {
-                successMessage.style.opacity = '0'; // Desvanecer el mensaje
-                setTimeout(() => {
-                    successMessage.style.display = 'none'; // Ocultar el mensaje completamente
-                }, 1000); // Tiempo de desvanecimiento
-            }, 5000); // Tiempo para mostrar el mensaje
-        }
+
+    const recordId = @json($recordId); // Asegúrate de que recordId está definido
+
+    function exportToPDFAndSendEmail() {
+        html2canvas(document.querySelector(".container"), {
+            willReadFrequently: true  // Mejora el rendimiento en operaciones de lectura
+        }).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+            const margin = 10; // Definir el tamaño del margen en puntos
+            const imgWidth = 200 - 2 * margin; // Restar los márgenes de la anchura de la página
+            const pageHeight = 293 - 2 * margin; // Restar los márgenes de la altura de la página
+            const imgHeight = canvas.height * imgWidth / canvas.width;
+            let heightLeft = imgHeight;
+
+            // Agregar la imagen al PDF
+            pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+
+            while (heightLeft >= 0) {
+                position = heightLeft - imgHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+            }
+
+            // Convertir PDF a Blob para enviarlo
+            const pdfBlob = pdf.output('blob');
+            const formData = new FormData();
+            formData.append('pdf', pdfBlob, 'Resultado_evaluacion.pdf');
+
+            // Enviar el PDF al servidor
+            fetch(`/sendresults/${recordId}`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    $('#emailSentModal').modal('show');
+                } else {
+                    alert('Error al enviar el PDF.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al enviar el PDF.');
+            });
+        });
+    }
+
+    const button = document.querySelector('a[onclick="exportToPDFAndSendEmail()"]');
+    if (button) {
+        button.removeEventListener('click', exportToPDFAndSendEmail); // Elimina cualquier evento antiguo
+        button.addEventListener('click', exportToPDFAndSendEmail);
+    }
+
+    //Script para mostrar mensaje de exito por 3 segundos 
+    document.addEventListener("DOMContentLoaded", function() {
+    // Configura un temporizador de 3 segundos para ocultar la alerta
+        setTimeout(function() {
+                var alert = document.getElementById('success-alert');
+            if (alert) {
+                alert.classList.remove('show'); 
+                alert.classList.add('fade');    
+                setTimeout(function() {
+                    alert.remove(); 
+                }, 300); 
+            }
+        }, 2000); 
     });
+    
 </script>
-
-
 @stop

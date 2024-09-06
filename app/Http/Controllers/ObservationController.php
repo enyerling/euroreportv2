@@ -6,6 +6,7 @@ use App\Models\Images;
 use App\Models\User;
 use App\Models\Audience;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 
 use Illuminate\Http\Request;
@@ -60,4 +61,25 @@ class ObservationController extends Controller
 
         return redirect()->route('admin.detalles_evaluacion', ['evaluationId' => $recordEvaluationId]);
     }
+    public function destroy(Request $request)
+    {
+        $observation_id = $request->input('observation_id');
+
+        $observation = Observations::findOrFail($observation_id);
+        $observation->delete();
+
+        return redirect()->back()->with('success', 'Observacion eliminada exitosamente.');
+    }
+    public function destroyImages(Request $request)
+    {
+        $imageId = $request->input('image_id');
+        $recordEvaluationId = $request->input('record_evaluation_id');
+
+        $image = Images::findOrFail($imageId);
+        Storage::delete('public/' . $image->path);
+        $image->delete();
+
+        return redirect()->back()->with('success', 'Imagen eliminada exitosamente.');
+    }
+
 }

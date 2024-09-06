@@ -51,11 +51,6 @@
                 @if ($evaluation->status === '1')
                     <div class="d-flex justify-content-between align-items-start">
                         <i class="text-success fa fa-check-square fa-2x"></i>
-                        @role('admin|subadmin')
-                        <a href="{{ route('enviar.resultados', ['evaluationId' => $evaluation->id]) }}" class="btn btn-sm btn-dark" title="Enviar correo">
-                            <i class="fa fa-envelope "></i>
-                        </a>
-                        @endrole
                     </div>
                 @else
                     <div class="d-flex justify-content-between align-items-start">
