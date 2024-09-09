@@ -108,15 +108,18 @@
     @if (session('status'))
     <script>
         $(document).ready(function() {
+            // Obtiene los datos de sesión
             var status = "{{ session('status') }}";
             var message = "{{ session('message') }}";
             var hotelId = "{{ session('hotelId') }}";
 
+            // Establece el ícono y el color del resultado basado en el estad
             $('#resultIcon').html(status === 'success' ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-exclamation-triangle"></i>');
             $('#resultIcon').css('color', status === 'success' ? '#28a745' : '#ffc107');
             $('#resultMessage').text(message);
             $('#resultModal').modal('show');
 
+            // Evento que se dispara cuando el modal se oculta
             $('#resultModal').on('hidden.bs.modal', function (e) {
                 var url = "{{ route('admin.evaluacioneshotel', ['hotelId' => ':hotelId']) }}";
                 url = url.replace(':hotelId', hotelId);

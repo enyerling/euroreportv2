@@ -109,9 +109,12 @@
 
 @section('js')
     <script>
+        // Espera a que el contenido del documento esté completamente cargado
        document.addEventListener('DOMContentLoaded', function () {
+            // Selecciona todos los botones con la clase 'btn-delete'
             const deleteButtons = document.querySelectorAll('.btn-delete');
-                
+            
+            // Recorre cada botón y añade un evento de clic
             deleteButtons.forEach(button => {
                    button.addEventListener('click', function () {
                     const evaluationId = this.getAttribute('data-id');

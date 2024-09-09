@@ -13,7 +13,7 @@ class CreateRecordEvaluationTable extends Migration
      */
     public function up()
     {
-        Schema::create('record_evaluation', function (Blueprint $table) {
+        Schema::create('record_evaluations', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('hotel_id')->unsigned();
             $table->char('status', 1)->default('1');
@@ -30,6 +30,6 @@ class CreateRecordEvaluationTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('record_evaluation');
+        Schema::dropIfExists('record_evaluations');
     }
 }

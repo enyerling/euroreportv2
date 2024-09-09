@@ -86,12 +86,15 @@
 
 @section('js')
     <script> 
+        // Agrega un evento de clic al botón con el ID 'guardarConfigBtn'
         document.getElementById('guardarConfigBtn').addEventListener('click', function(event) {
-            event.preventDefault(); 
+            event.preventDefault(); // Previene el comportamiento predeterminado del formulario (enviar la página)
 
             var form = document.getElementById('configForm'); 
+            // Crea un objeto FormData a partir del formulario
             var formData = new FormData(form);
 
+             // Envía una solicitud POST utilizando Fetch API
             fetch(form.action, {
                 method: 'POST',
                 body: formData

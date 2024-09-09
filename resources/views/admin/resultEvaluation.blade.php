@@ -187,6 +187,7 @@
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script>
+    //Grafico de torta 
     document.addEventListener("DOMContentLoaded", function () {
         // Datos para el gráfico de torta
         var pieLabels = @json(array_column($scoresBySystem, 'systemName'));
@@ -250,6 +251,7 @@
     const managerName = "Gerente: {{ $managerName }}";
     const issueDate = "Fecha de Expedición: {{ $issueDate }}";
 
+    //Funcion oara exportar el contenido de la pagina en un pdf 
     function exportToPDF() {
         html2canvas(document.querySelector(".container")).then(canvas => {
             const imgData = canvas.toDataURL('image/png');
@@ -287,8 +289,9 @@
     }
 
 
-    const recordId = @json($recordId); // Asegúrate de que recordId está definido
+    const recordId = @json($recordId); 
 
+    //Exportar la pagina en pdf y enviarla por correo 
     function exportToPDFAndSendEmail() {
         html2canvas(document.querySelector(".container"), {
             willReadFrequently: true  // Mejora el rendimiento en operaciones de lectura
@@ -346,7 +349,7 @@
         button.addEventListener('click', exportToPDFAndSendEmail);
     }
 
-    //Script para mostrar mensaje de exito por 3 segundos 
+    //Mostrar mensaje de exito por 3 segundos 
     document.addEventListener("DOMContentLoaded", function() {
     // Configura un temporizador de 3 segundos para ocultar la alerta
         setTimeout(function() {

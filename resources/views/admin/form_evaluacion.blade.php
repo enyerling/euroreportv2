@@ -67,7 +67,7 @@
                                                     <option value="no">No</option>
                                                 </select>
                                                 <br>
-                                                <input type="date" class="form-control" id="fecha_{{ $index }}_{{ $pregunta['id'] }}_{{ $i }}" name="sistemas[{{ $index }}][preguntas][{{ $pregunta['id'] }}][respuesta_fecha]">
+                                                <input type="date" class="form-control" id="fecha_{{ $index }}_{{ $pregunta['id'] }}_{{ $i }}" name="sistemas[{{ $index }}][preguntas][{{ $pregunta['id'] }}][respuesta_fecha]" pattern="\d{4}-\d{2}-\d{2}">
                                             @endif
                                         @endif
                                     </div>
@@ -85,7 +85,7 @@
         </div>
     </form>
 </div>
-
+<!-- Modal de resultado de la evaluación -->
 <div class="modal fade" id="resultModal" tabindex="-1" role="dialog" aria-labelledby="resultModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -110,6 +110,7 @@
 @section('js')
     @if (session('status'))
     <script>
+        // Mostrar modal al cargar la página si hay mensajes de estado
         $(document).ready(function() {
             var status = "{{ session('status') }}";
             var message = "{{ session('message') }}";
@@ -120,6 +121,7 @@
             $('#resultMessage').text(message);
             $('#resultModal').modal('show');
 
+            // Redirige al usuario a la URL de evaluaciones del hotel cuando se cierre el modal
             $('#resultModal').on('hidden.bs.modal', function (e) {
                 var url = "{{ route('admin.evaluacioneshotel', ['hotelId' => ':hotelId']) }}";
                 url = url.replace(':hotelId', hotelId);
@@ -130,12 +132,14 @@
     @endif
 
 <script>
+    // Función para mostrar el modal con diferentes tipos de mensajes
      function showModal(type, message) {
             const resultModal = new bootstrap.Modal(document.getElementById('resultModal'));
             const resultIcon = document.getElementById('resultIcon');
             const resultMessage = document.getElementById('resultMessage');
             const closeButton = document.querySelector('#resultModal .btn-secondary');
 
+            // Configura el ícono y el mensaje basado en el tipo
             if (type === 'success') {
                 resultIcon.innerHTML = '<i class="fa fa-check-circle" style="color: green; font-size: 2em;"></i>';
                 resultMessage.innerText = message;
@@ -149,8 +153,10 @@
 
             resultModal.show();
         }
-    
-      document.addEventListener('DOMContentLoaded', () => {
+
+        // Evento cuando el contenido del DOM se ha cargado
+        document.addEventListener('DOMContentLoaded', () => {
+            // Maneja el envío del formulario de evaluación
             document.getElementById('evaluationForm').addEventListener('submit', function (event) {
                 event.preventDefault();
                 const formData = new FormData(this);
@@ -163,13 +169,14 @@
                     showModal('warning', 'Estás offline. Los datos se guardaron localmente y se sincronizarán cuando vuelvas a estar en línea.');
                 }
             });
-
+                // Maneja el evento cuando se vuelve a estar en línea
                 window.addEventListener('online', () => {
                     console.log('Conexión restaurada. Intentando sincronizar datos...');
                     syncOfflineData();
                 });
         });
 
+        // Función para guardar los datos del formulario en IndexedDB
         function saveFormOffline(formData) {
             let data = {
                 _token: formData.get('_token'),
@@ -213,6 +220,7 @@
                 data.sistemas.push(systemData);
             });
 
+            //// Abre la base de datos IndexedDB y guarda los datos
             openDatabase().then((db) => {
                 const tx = db.transaction('pendingEvaluations', 'readwrite');
                 const store = tx.objectStore('pendingEvaluations');
@@ -227,7 +235,8 @@
                 };
             });
         }
-
+    
+    // Función para sincronizar datos almacenados localmente con el servidor cuando se restaura la conexión
     function syncOfflineData() {
         openDatabase().then((db) => {
             const tx = db.transaction('pendingEvaluations', 'readonly');
@@ -281,6 +290,7 @@
             };
         });
     }
+        // Función para abrir y configurar la base de datos IndexedDB
         function openDatabase() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open('EvaluationsDB', 1);

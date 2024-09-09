@@ -146,21 +146,7 @@
 @stop
 
 @section('js')
-<script>
-    function togglePasswordVisibility(id) {
-        var passwordField = document.getElementById(id);
-        var icon = document.getElementById(id + '_icon');
-        if (passwordField.type === 'password') {
-            passwordField.type = 'text';
-            icon.classList.remove('fa-eye');
-            icon.classList.add('fa-eye-slash');
-        } else {
-            passwordField.type = 'password';
-            icon.classList.remove('fa-eye-slash');
-            icon.classList.add('fa-eye');
-        }
-    }
-</script>
+    <!-- Verifica si hay un mensaje de sesión 'status' y si existe, muestra el modal de éxito -->
     @if (session('status'))
         <script>
             $(document).ready(function() {
@@ -168,5 +154,21 @@
             });
         </script>
     @endif
+    <script>
+        // Función para alternar la visibilidad de la contraseña
+        function togglePasswordVisibility(id) {
+            var passwordField = document.getElementById(id);
+            var icon = document.getElementById(id + '_icon');
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
 
 @stop

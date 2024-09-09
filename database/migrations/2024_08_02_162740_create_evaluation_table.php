@@ -13,7 +13,7 @@ class CreateEvaluationTable extends Migration
      */
     public function up()
     {
-        Schema::create('evaluation', function (Blueprint $table) {
+        Schema::create('evaluations', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('record_evaluation_id')->unsigned();
             $table->integer('system_id')->unsigned();
@@ -23,7 +23,7 @@ class CreateEvaluationTable extends Migration
             $table->integer('room')->nullable();
             $table->integer('instance')->nullable();
             $table->timestamps();
-            $table->foreign('record_evaluation_id')->references('id')->on('record_evaluation')->onDelete('cascade');
+            $table->foreign('record_evaluation_id')->references('id')->on('record_evaluations')->onDelete('cascade');
             $table->foreign('system_id')->references('id')->on('systems')->onDelete('cascade');
             $table->foreign('question_id')->references('id')->on('questions')->onDelete('cascade');
         });
@@ -36,6 +36,6 @@ class CreateEvaluationTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('evaluation');
+        Schema::dropIfExists('evaluations');
     }
 }

@@ -70,6 +70,7 @@
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
 <script>
+    //Filtrado de busqueda de la tabla 
     document.addEventListener("DOMContentLoaded", function () {
         const searchInput = document.getElementById('searchInput');
         const table = document.getElementById('evaluationsTable');
@@ -94,6 +95,7 @@
         });
     });
 
+    //Funcion para exportar el contenido de la pagina en un documento pdf 
     function exportToPDF() {
         const { jsPDF } = window.jspdf;
         const logoUrl = '{{ asset('vendor/adminlte/dist/img/logo_1.png') }}';

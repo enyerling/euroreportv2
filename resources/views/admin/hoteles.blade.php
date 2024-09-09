@@ -173,6 +173,7 @@
 
 @section('js')
         <script>
+            //filtro de busqueda en la tabla 
             document.addEventListener("DOMContentLoaded", function () {
                 const searchInput = document.getElementById('searchInput');
                 const tableBody = document.getElementById('tableBody');
@@ -196,6 +197,7 @@
                 });
             });
 
+            // Validar tamaño de imagen
             document.getElementById('hotelImage').addEventListener('change', function(event) {
                 const file = event.target.files[0];
                 if (file) {
@@ -210,6 +212,7 @@
                 }
             });
 
+            // Mostrar modal de edición
             function openEditModal(hotelId, hotelName, managerName) {
                 document.getElementById('editHotelId').value = hotelId;
                 document.getElementById('editHotelName').value = hotelName;
@@ -219,6 +222,7 @@
                 $('#editHotelModal').modal('show');
             }
 
+            // Mostrar modal de eliminación
             document.addEventListener('DOMContentLoaded', function () {
                 const deleteButtons = document.querySelectorAll('.btn-delete');
                 
@@ -250,7 +254,5 @@
                     }
                 }, 2000); 
             });
-        
-
     </script>
 @endsection

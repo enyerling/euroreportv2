@@ -208,6 +208,7 @@
 
 @section('js')
     <script>
+        //Filtrado de busqueda de la tabla 
         document.addEventListener("DOMContentLoaded", function () {
                 const searchInput = document.getElementById('searchInput');
                 const tableBody = document.getElementById('tableBody');
@@ -231,7 +232,7 @@
                 });
             });
 
-             //Script para mostrar mensaje de exito por 43 segundos 
+             //Mostrar mensaje de exito por 43 segundos 
              document.addEventListener("DOMContentLoaded", function() {
             // Configura un temporizador de 3 segundos para ocultar la alerta
                 setTimeout(function() {

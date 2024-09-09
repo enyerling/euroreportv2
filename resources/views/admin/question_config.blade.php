@@ -108,18 +108,21 @@
 
 @section('js')
     <script>
+        //Función para seleccionar todos los checkboxes dentro de una lista especificada
         function selectAll(listId) {
             var checkboxes = document.querySelectorAll('#' + listId + ' .form-check-input');
             checkboxes.forEach(checkbox => {
                 checkbox.checked = true; 
             });
         }
-    </script>
-    <script> 
+
+        // Agrega un event listener al botón 'guardarConfigBtn' que se activa cuando se hace clic
         document.getElementById('guardarConfigBtn').addEventListener('click', function(event) {
             event.preventDefault(); 
-
-            var form = document.getElementById('configForm'); 
+            
+            // Obtiene el formulario de configuración por su ID
+            var form = document.getElementById('configForm');  
+        
             var formData = new FormData(form);
 
             fetch(form.action, {

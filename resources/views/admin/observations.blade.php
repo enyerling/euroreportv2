@@ -94,6 +94,7 @@
         });
     });
 
+    // Añade un evento 'change' al input con ID 'tomarFoto', que se activa cuando el usuario selecciona un archivos
     document.getElementById('tomarFoto').addEventListener('change', function(event) {
         const preview = document.getElementById('preview');
         preview.innerHTML = ''; // Clear previous previews
@@ -118,5 +119,3 @@
 
 @endsection
 
-@section('js')
-@stop
