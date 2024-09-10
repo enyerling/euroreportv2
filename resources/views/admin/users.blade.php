@@ -143,15 +143,15 @@
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="name">Nombre</label>
-                        <input type="text" name="name" class="form-control" id="name" value="{{ $user->name }}" required>
+                        <input type="text" name="name" class="form-control" id="name-{{$user->id}}" value="{{ $user->name }}" required>
                     </div>
                     <div class="form-group">
                         <label for="email">Email</label>
-                        <input type="email" name="email" class="form-control" id="email" value="{{ $user->email }}" required>
+                        <input type="email" name="email" class="form-control" id="email-{{$user->id}}" value="{{ $user->email }}" required>
                     </div>
                     <div class="form-group">
                         <label for="role">Rol</label>
-                        <select name="role" id="role" class="form-control" required>
+                        <select name="role" id="role-{{$user->id}}" class="form-control" required>
                             @foreach($roles as $role)
                                 <option value="{{ $role->name }}" @if($user->roles->first()->name == $role->name) selected @endif>{{ $role->name }}</option>
                             @endforeach
@@ -159,7 +159,7 @@
                     </div>
                     <div class="form-group">
                         <label for="hotel_id">Hotel</label>
-                        <select name="hotel_id" id="hotel_id" class="form-control" required>
+                        <select name="hotel_id" id="hotel_id-{{$user->id}}" class="form-control" required>
                             <option value="0" @if($user->hotel_id == 0) selected @endif>N/A</option>
                             @foreach($hotels as $hotel)
                                 <option value="{{ $hotel->id }}" @if($user->hotel_id == $hotel->id) selected @endif>{{ $hotel->name }}</option>
