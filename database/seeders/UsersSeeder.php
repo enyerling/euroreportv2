@@ -31,9 +31,6 @@ class UsersSeeder extends Seeder
         $adminRole = Role::findByName('admin');
         $adminRole->givePermissionTo(['ver usuarios', 'gestionar hoteles']);
 
-        $adminRole = Role::findByName('subadmin');
-        $adminRole->givePermissionTo(['ver usuarios', 'gestionar hoteles']);
-
         $user = User::find(1);
         $user->assignRole('admin');
         

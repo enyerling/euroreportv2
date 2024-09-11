@@ -110,9 +110,11 @@
                             @csrf
                             @method('DELETE')
                             <input type="hidden" name="observation_id" value="{{ $observation->id }}">
-                            <button type="submit" class="btn btn-danger btn-sm">
-                                <i class="fa fa-times"></i>
-                            </button>
+                            @role('admin|subadmin')
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            @endrole
                         </form>
                     </div>
                 </div>
@@ -139,9 +141,11 @@
                                 @csrf
                                 @method('DELETE')
                                 <input type="hidden" name="image_id" value="{{ $image->id }}">
-                                <button type="submit" class="btn btn-danger btn-sm">
-                                    <i class="fa fa-times"></i>
-                                </button>
+                                    @role('admin|subadmin')
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="fa fa-times"></i>
+                                        </button>
+                                    @endrole
                             </form>
                             <img src="{{ asset('storage/' . $image->path) }}" class="card-img-top" alt="Imagen">
                         </div>

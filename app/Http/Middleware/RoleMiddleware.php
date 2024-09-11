@@ -6,29 +6,33 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class RoleMiddleware
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \Closure(\Illuminate\Http\Request): (\Illuminate\Http\Response|\Illuminate\Http\RedirectResponse)  $next
-     * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
-     */
+    // Define roles predefinidos
+    protected $roles = [
+        'admin' => 'admin',
+        'subadmin' => 'subamin',
+        'user' => 'user',
+    ];
 
-     /** @var \App\Models\User */
-    
-     public function handle($request, Closure $next, $role)
-     {
-        /** @var \App\Models\User */
-         $user = Auth::user();
-         Log::info('User Role Check', ['user' => $user, 'role' => $role, 'hasRole' => $user->hasRole($role)]);
- 
-         if (Auth::check() && $user->hasRole($role)) {
-             return $next($request);
-         }
- 
-         return redirect('/');
-     }
+    public function handle($request, Closure $next, $role)
+    {
+        $user = Auth::user();
+
+        // Log para depuración
+        Log::info('Checking user role', [
+            'user_id' => $user->id,
+            'roles' => $user->roles->pluck('name'),
+            'required_role' => $role,
+            'has_role' => $user->hasRole($role),
+        ]);
+
+        if ($user && $user->hasRole($role)) {
+            return $next($request);
+        }
+
+        return redirect()->route('admin.dashboard');
+    }   
 }
