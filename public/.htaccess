@@ -20,4 +20,4 @@
     RewriteRule ^ index.php [L]
     php_value max_input_vars 5000
 </IfModule>
-<
+
