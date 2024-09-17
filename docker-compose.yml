@@ -1,37 +1,60 @@
-version: '3.9'
-
+version: '3.8'
 services:
+  # Contenedor de la aplicación Laravel con Apache
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    image: laravel-app
-    container_name: laravel-app
-    restart: unless-stopped
-    working_dir: /var/www/html
+    container_name: laravel_app
     volumes:
-      - .:/var/www/html
-      - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
+      - ./:/var/www/html
     ports:
       - "8080:80"
-    depends_on:
-      - mysql
-    networks:
-      - laravel-network
-
-  mysql:
-    image: mysql:8.0
-    container_name: mysql
-    restart: unless-stopped
+      - "443:443"
     environment:
-      MYSQL_ROOT_PASSWORD: root # Contraseña para el usuario root
-      MYSQL_DATABASE: euroreportdb 
+      - APACHE_RUN_USER=www-data
+      - APACHE_RUN_GROUP=www-data
+    depends_on:
+      - db
+   # networks:
+     # - laravel_network
+
+  
+  # Contenedor de la base de datos MySQL
+  db:
+    image: mysql:5.7
+    container_name: mysql_db
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: laravel
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
     ports:
       - "3306:3306"
-    networks:
-      - laravel-network
+    volumes:
+      - dbdata:/var/lib/mysql
+      - ./docker/mysql-init:/docker-entrypoint-initdb.d # Importar el archivo SQL
+    #networks:
+     # - laravel_network
+  # Contenedor de phpMyAdmin para administrar la base de datos
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: phpmyadmin
+    environment:
+      - PMA_HOST=mysql_db
+      - MYSQL_ROOT_PASSWORD=root
+    ports:
+      - "8081:80"
+    depends_on:
+      - db
+    #networks:
+     # - laravel_network
 
-networks:
-  laravel-network:
-    driver: bridge
+  # Redes compartidas
+ # networks:
+   # laravel_network:
+     # driver: bridge
 
+  # Volúmenes persistentes para la base de datos
+volumes:
+  dbdata:

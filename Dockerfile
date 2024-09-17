@@ -1,33 +1,47 @@
-# Utiliza la imagen base de PHP con Apache
-FROM php:8.0-apache
+# Usa una imagen base de PHP con Apache
+FROM php:8.1-apache
 
-# Instala extensiones necesarias para Laravel
-RUN apt-get update && apt-get install -y \
-    libzip-dev \
-    unzip \
-    && docker-php-ext-install pdo_mysql zip
-
-# Instala Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Instala dependencias necesarias
+RUN apt-get update && \
+    apt-get install -y libpng-dev libjpeg-dev libfreetype6-dev libzip-dev unzip git nano && \
+    docker-php-ext-configure gd --with-freetype --with-jpeg && \
+    docker-php-ext-install gd zip pdo pdo_mysql && \
+    pecl install xdebug && \
+    docker-php-ext-enable xdebug
+# Habilita el módulo SSL
+RUN a2enmod ssl
 
 # Configura el directorio de trabajo
 WORKDIR /var/www/html
 
-# Copia los archivos de la aplicación al contenedor
+# Copia el código fuente de la aplicación
 COPY . /var/www/html
+# Copiar el archivo de configuración de Apache
+COPY ./docker/apache/000-default.conf /etc/apache2/sites-available/000-default.conf
+# Copia los certificados al contenedor
+COPY ./docker/ssl/euroreporte.crt /etc/ssl/certs/euroreporte.crt
+COPY ./docker/ssl/clave.key /etc/ssl/private/clave.key
 
-# Asigna los permisos adecuados a la carpeta de almacenamiento de Laravel
-RUN chown -R www-data:www-data /var/www/html/storage \
-    && chmod -R 775 /var/www/html/storage
-
-# Habilita el módulo de reescritura de Apache
+# Habilitar el módulo de reescritura de Apache
 RUN a2enmod rewrite
 
-# Ejecuta Composer para instalar las dependencias de Laravel
-RUN composer install --optimize-autoloader --no-dev
 
-# Expone el puerto 80 para Apache
+# Ajusta permisos para las carpetas de almacenamiento
+RUN chown -R www-data:www-data /var/www/html/storage && \
+    chmod -R 777 /var/www/html/storage && \
+    chown -R www-data:www-data /var/www/html/bootstrap/cache && \
+    chmod -R 777 /var/www/html/bootstrap/cache
+
+# Copia el archivo .env si lo tienes en tu contexto de construcción
+COPY .env /var/www/html/.env
+
+# Instala Composer y dependencias de PHP
+RUN curl -sS https://getcomposer.org/installer | php && \
+    mv composer.phar /usr/local/bin/composer && \
+    composer install --no-dev --optimize-autoloader
+
+# Expon el puerto 80
 EXPOSE 80
 
-# Ejecuta los comandos necesarios al iniciar el contenedor
+# Inicia el servidor web
 CMD ["apache2-foreground"]

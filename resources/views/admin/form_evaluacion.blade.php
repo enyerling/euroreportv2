@@ -2,72 +2,64 @@
 @section('title', 'Evaluacion')
 
 @section('content_header')
-  
+    <h3><center>Evaluación</center></h3>
 @stop
 
 @section('content')
 <div class="container">
-    <br>
-    <center><h2>Evaluación</h2></center>
-    
-    <ul class="nav nav-pills mb-4" id="evaluationTabs" role="tablist">
-        @foreach ($preguntasPorSistema as $index => $item)
-            <li class="nav-item" role="presentation">
-                <a class="nav-link {{ $index === 0 ? 'active' : '' }}" id="tab-{{ $index }}" data-toggle="tab" href="#section-{{ $index }}" role="tab" aria-controls="section-{{ $index }}" aria-selected="{{ $index === 0 ? 'true' : 'false' }}">
-                {{ $item['system'] }}
-                </a>
-            </li>
-        @endforeach
-    </ul>
 
     <form method="POST" action="{{ route('admin.guardar_evaluacion') }}" id="evaluationForm">
         @csrf
         <input type="hidden" name="hotel_id" value="{{ $hotelId }}">
-
-        <div class="tab-content" id="evaluationTabsContent">
+        <input type="hidden" name="record_evaluation_id" id="recordEvaluationId" value="">
+        <div id="accordionEvaluation">
             @foreach ($preguntasPorSistema as $index => $item)
-                <div class="tab-pane fade {{ $index === 0 ? 'show active' : '' }}" id="section-{{ $index }}" role="tabpanel" aria-labelledby="tab-{{ $index }}">
-                    <div class="card mt-3">
-                        <div class="card-header">
-                            <h1 class="card-title text-primary"><b>SISTEMA: {{ $item['system'] }}</b></h1>
-                        </div>
+                <div class="card">
+                    <div class="card-header" id="heading-{{ $index }}" style="padding: 0;">
+                        <h5 class="mb-0">
+                            <!-- Botón para expandir/contraer el acordeón -->
+                            <button class="btn btn-link {{ $index === 0 ? '' : 'collapsed' }}" type="button" data-toggle="collapse"  data-target="#collapse-{{ $index }}"  aria-expanded="{{ $index === 0 ? 'true' : 'false' }}"  aria-controls="collapse-{{ $index }}"  style="width: 100%; text-align: left; padding: 10px; border: none; background: #f8f9fa; display: flex; justify-content: space-between; align-items: center;">
+                                <strong> {{ $item['system'] }} </strong>
+                                <span class="accordion-icon">
+                                    <i class="fas fa-chevron-down"></i>
+                                </span>
+                            </button>
+                        </h5>
+                    </div>
+
+                    <div id="collapse-{{ $index }}" class="collapse" aria-labelledby="heading-{{ $index }}" data-parent="#accordionEvaluation">
                         <div class="card-body">
                             <input type="hidden" name="sistemas[{{ $index }}][system_id]" value="{{ $item['system_id'] }}">
                             <input type="hidden" name="sistemas[{{ $index }}][instance]" value="{{ $item['instance'] }}">
 
+                            <!-- Campo de número de habitación si es necesario -->
                             @if ($item['system_id'] == 12)
                                 <div class="form-group">
                                     <label for="numero_habitacion_{{ $index }}">Número de Habitación</label>
-                                    <input type="text" class="form-control" id="numero_habitacion_{{ $index }}" name="sistemas[{{ $index }}][numero_habitacion]">
+                                    <input type="text" class="form-control" id="numero_habitacion_{{ $index }}" name="sistemas[{{ $index }}][numero_habitacion]" value="{{ old('sistemas.' . $index . '.numero_habitacion') }}">
                                 </div>
                             @endif
 
+                            <!-- Preguntas del sistema -->
                             @foreach ($item['preguntas'] as $preguntaIndex => $pregunta)
                                 @for ($i = 1; $i <= $pregunta['cantidad']; $i++)
-                                    <div class="form-group">
+                                    <div class="form-group mt-3">
                                         @if($pregunta['accessorie_name'])
-                                            <br>
                                             <h6><b>{{ $pregunta['accessorie_name'] }}</b></h6>
                                         @endif
                                         <label for="pregunta_{{ $index }}_{{ $pregunta['id'] }}_{{ $i }}">{{ $pregunta['name'] }} {{ $i }}</label>
 
                                         <input type="hidden" name="sistemas[{{ $index }}][preguntas][{{ $pregunta['id'] }}][pregunta_id]" value="{{ $pregunta['id'] }}">
-                                        
+
                                         @if ($pregunta['type'] === 'Cerrada')
-                                            @if ($pregunta['answer'] === null)
-                                                <select class="form-control" id="respuesta_{{ $index }}_{{ $pregunta['id'] }}_{{ $i }}" name="sistemas[{{ $index }}][preguntas][{{ $pregunta['id'] }}][respuesta]">
-                                                    <option value=" ">Por responder</option>
-                                                    <option value="si">Sí</option>
-                                                    <option value="no">No</option>
-                                                </select>
-                                            @elseif ($pregunta['answer'] === 'Fecha')
-                                                <select class="form-control" id="respuesta_{{ $index }}_{{ $pregunta['id'] }}_{{ $i }}" name="sistemas[{{ $index }}][preguntas][{{ $pregunta['id'] }}][respuesta]">
-                                                    <option value=" ">Por responder</option>
-                                                    <option value="si">Sí</option>
-                                                    <option value="no">No</option>
-                                                </select>
+                                            <select class="form-control" id="respuesta_{{ $index }}_{{ $pregunta['id'] }}_{{ $i }}" name="sistemas[{{ $index }}][preguntas][{{ $pregunta['id'] }}][respuesta]">
+                                                <option value=" ">Por responder</option>
+                                                <option value="si">Sí</option>
+                                                <option value="no">No</option>
+                                            </select>
+                                            @if ($pregunta['answer'] === 'Fecha')
                                                 <br>
-                                                <input type="date" class="form-control" id="fecha_{{ $index }}_{{ $pregunta['id'] }}_{{ $i }}" name="sistemas[{{ $index }}][preguntas][{{ $pregunta['id'] }}][respuesta_fecha]" pattern="\d{4}-\d{2}-\d{2}">
+                                                <input type="date" class="form-control" id="fecha_{{ $index }}_{{ $pregunta['id'] }}_{{ $i }}" name="sistemas[{{ $index }}][preguntas][{{ $pregunta['id'] }}][respuesta_fecha]" value="{{ old('sistemas.' . $index . '.preguntas.' . $pregunta['id'] . '.respuesta_fecha') }}">
                                             @endif
                                         @endif
                                     </div>
@@ -77,14 +69,15 @@
                     </div>
                 </div>
             @endforeach
+        </div>
 
-            <div class="text-center mt-3">
-                <button type="submit" class="btn btn-primary" id="submitBtn">Guardar Evaluación</button>
-            </div>
-            <br>
+        <!-- Botón de guardar al final del formulario -->
+        <div class="text-center mt-3">
+            <button type="submit" class="btn btn-primary">Guardar Evaluación</button>
         </div>
     </form>
 </div>
+
 <!-- Modal de resultado de la evaluación -->
 <div class="modal fade" id="resultModal" tabindex="-1" role="dialog" aria-labelledby="resultModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -311,7 +304,5 @@
                 };
             });
         }
-
-        
     </script>
 @stop

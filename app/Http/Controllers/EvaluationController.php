@@ -463,6 +463,8 @@ class EvaluationController extends Controller
             return response()->json(['error' => 'Error al enviar el PDF.'], 500);
         }
     }
+    
+    
 }
     
 

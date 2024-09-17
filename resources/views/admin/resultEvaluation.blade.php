@@ -47,7 +47,21 @@
                             <span class="progress-text">{{ $score['systemName'] }}</span>
                             <span class="float-right"><b>{{ $score['correctAnswers'] }}</b>/{{ $score['totalQuestions'] }}</span>
                             <div class="progress progress-sm">
-                                <div class="progress-bar {{ $loop->index % 2 === 0 ? 'bg-primary' : 'bg-success' }}" style="width: {{ number_format(($score['correctAnswers'] / $score['totalQuestions']) * 100, 2) }}%"></div>
+                                @php
+                                    $correctAnswers = $score['correctAnswers'];
+                                    $totalQuestions = $score['totalQuestions'];
+                                    $percentage = ($correctAnswers / $totalQuestions) * 100;
+                                    $progressColor = '';
+
+                                    if ($percentage <= 35) {
+                                        $progressColor = 'bg-danger';
+                                    } elseif ($percentage > 35 && $percentage <= 70) {
+                                        $progressColor = 'bg-warning'; 
+                                    } else {
+                                        $progressColor = 'bg-success'; 
+                                    }
+                                @endphp
+                                <div class="progress-bar {{ $progressColor }}" style="width: {{ number_format($percentage, 2) }}%"></div>
                             </div>
                         </div>
                     @endforeach
