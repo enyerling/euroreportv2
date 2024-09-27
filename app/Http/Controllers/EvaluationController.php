@@ -220,10 +220,10 @@ class EvaluationController extends Controller
         $issueDate = now()->format('d-m-Y');
 
         $observations = Observations::where('record_evaluation_id', $recordId)->get();
-        
+    
         // Retornar la vista con los resultados del puntaje y otros datos relevantes
         return view('admin.resultEvaluation', [
-            'scoresBySystem' => $scoresBySystem,
+            'scoresBySystem' => array_values($scoresBySystem),
             'totalScore' => $totalScore, 
             'observations' => $observations,
             'recordId' => $recordId , 
@@ -445,7 +445,7 @@ class EvaluationController extends Controller
             $usuariosAdmin = User::role('admin')->get();
 
             $usuarios = $usuariosHotel->merge($usuariosAdmin)->unique('email');
-    
+        
             // Obtener el PDF desde la solicitud
             $pdf = $request->file('pdf');
             $pdfData = file_get_contents($pdf->getRealPath());

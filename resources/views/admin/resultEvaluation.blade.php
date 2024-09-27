@@ -31,7 +31,7 @@
 
     <div class="alert alert-secondary text-center">
         <a>
-        <h4>Puntaje Total: {{ number_format($totalScore, 2) }}  <a href="{{ route('admin.ver_evaluacion', ['recordId' => $recordId]) }}" class="btn btn-dark btn-sm float-right" title="Ver mas detalles">
+        <h4>Puntaje Total: {{ $totalScore }}  <a href="{{ route('admin.ver_evaluacion', ['recordId' => $recordId]) }}" class="btn btn-dark btn-sm float-right" title="Ver mas detalles">
         <i class="fas fa-eye"></i> 
         </a></h4>
     </div>
@@ -204,6 +204,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
 <script>
     //Grafico de torta 
     document.addEventListener("DOMContentLoaded", function () {
@@ -265,106 +266,349 @@
         }
     });
     
-    const hotelName = "{{ $hotelName }}";
-    const managerName = "Gerente: {{ $managerName }}";
-    const issueDate = "Fecha de Expedición: {{ $issueDate }}";
-
     //Funcion oara exportar el contenido de la pagina en un pdf 
-    function exportToPDF() {
-        html2canvas(document.querySelector(".container")).then(canvas => {
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+    async function exportToPDF() {
+        const { jsPDF } = window.jspdf;
+        const logoUrl = '{{ asset('vendor/adminlte/dist/img/logo_1.png') }}';
+        const currentDate = new Date().toLocaleDateString();
 
-            const logoUrl = '{{ asset('vendor/adminlte/dist/img/logo_1.png') }}';
-            const margin = 10; // Definir el tamaño del margen en puntos
+        // Crea una instancia de jsPDF
+        const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.width;
 
-            pdf.addImage(logoUrl, 'PNG', margin, margin, 30, 30);
+        // Agregar logo
+        doc.addImage(logoUrl, 'PNG', 10, 10, 30, 30); // Ajusta posición y tamaño del logo
 
-            pdf.setFontSize(10);
-            pdf.text(hotelName, 50, margin + 5); 
-            pdf.text(managerName, 50, margin + 15); 
-            pdf.text(issueDate, 50, margin + 25); 
+        // Información del hotel
+        doc.setFontSize(10);
+        doc.text('Nombre del Hotel: {{ $hotelName }}', 50, 20);
+        doc.text('Gerente: {{ $managerName }}', 50, 30);
+        doc.text('Fecha de Expedición: ' + currentDate, 50, 40);
 
-            const imgWidth = 210 - 2 * margin; // Restar los márgenes de la anchura de la página
-            const pageHeight = 297 - 4 * margin; // Restar los márgenes de la altura de la página
-            const imgHeight = canvas.height * imgWidth / canvas.width;
-            let heightLeft = imgHeight;
+        // Agrega un título
+        doc.setFontSize(20);
+        const title = 'Resultados de la Evaluación';
+        const titleWidth = doc.getTextWidth(title);
+        doc.text(title, (pageWidth - titleWidth) / 2, 55); // Centrar título
 
-            let position = 0;
+        const score = {{ $totalScore }};
+        const total = score.toFixed(2);
+        // Agrega el puntaje total
+        doc.setFontSize(20);
+        doc.setFont('Arial', 'bold'); 
+        doc.setTextColor(188,147,83);
+        doc.text(`Puntaje Total: ${total}`, 14, 70); // Cambié la posición Y para más espacio
 
-            pdf.addImage(imgData, 'PNG', margin, margin + 40, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
+        doc.setFontSize(12);      // Aplicar tamaño normal
+        doc.setFont('Helvetica', 'normal');   // Tipo de letra normal
+        doc.setTextColor(0, 0, 0);  
 
-            while (heightLeft >= 0) {
-                position = heightLeft - imgHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', margin, position + margin, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
-            }
+        doc.setFontSize(16);
+        const title2 = 'Detalles por Sistema';
+        const title2Width = doc.getTextWidth(title2);
+        doc.text(title2, (pageWidth - title2Width) / 2, 85);
 
-            pdf.save('Resultado_Evaluacion.pdf');
+        // Títulos de la tabla
+        doc.setFontSize(12);
+        const col = ["Sistema", "Preguntas Totales", "Respuestas Correctas", "Puntaje"];
+        const rows = [];
+
+        // Agregar datos a las filas
+        @foreach ($scoresBySystem as $systemId => $score)
+            rows.push(["{{ $score['systemName'] }}", "{{ $score['totalQuestions'] }}", "{{ $score['correctAnswers'] }}", "{{ number_format($score['score'], 2) }}"]);
+        @endforeach
+
+        // Configuración de la tabla
+        doc.autoTable({
+            head: [col],
+            body: rows,
+            startY: 90, // Y position to start the table
+            theme: 'grid',
+            headStyles: { fillColor: [45, 45, 45], textColor: [255, 255, 255] }// Color del encabezado
         });
-    }
 
+        // Agregar Progreso por Sistema
+        doc.addPage();
+        doc.setFontSize(16);
+        const title3 = 'Progreso por Sistema';
+        const title3Width = doc.getTextWidth(title3);
+        doc.text(title3, (pageWidth - title3Width) / 2, 20); // Centrar título
+
+        doc.setFontSize(12);
+        let yPosition = 30;
+
+        // Definir variables para la barra de progreso
+        const progressBarWidth = 150; // Ancho de la barra
+        const progressBarHeight = 2;  // Alto de la barra
+
+        @foreach ($scoresBySystem as $systemId => $score)
+            @php
+                $correctAnswers = $score['correctAnswers'];
+                $totalQuestions = $score['totalQuestions'];
+                $percentage = ($correctAnswers / $totalQuestions) * 100;
+                // Definir el color basado en el porcentaje
+                if ($percentage <= 35) {
+                    $progressColor = 'red';
+                } elseif ($percentage <= 70) {
+                    $progressColor = 'yellow';
+                } else {
+                    $progressColor = 'green';
+                }
+            @endphp
+            
+            // Dibujar texto de progreso
+            doc.setFontSize(10);
+            doc.text(`{{ $score['systemName'] }}: {{ $score['correctAnswers'] }} / {{ $score['totalQuestions'] }}`, 14, yPosition);
+            
+            // Usar los valores de PHP en el JS
+            doc.setFillColor("{{ $progressColor }}");
+            doc.rect(14, yPosition + 2, ({{ $percentage }} / 100) * progressBarWidth, progressBarHeight, 'F'); // Dibujar la barra
+            
+            yPosition += 12; // Incrementar la posición Y para la siguiente barra
+        @endforeach
+        
+        // Agregar leyenda visual al final de la página
+        yPosition +=5; // Dar un poco de espacio antes de la leyenda
+
+        doc.setFontSize(10);
+        doc.setTextColor(0); // Negro para el texto
+
+        // Dibujar la barra verde (progreso > 70%)
+        doc.setFillColor(46, 182, 25); // Verde
+        doc.rect(14, yPosition, 10, 5, 'F'); // Dibujar rectángulo verde
+        doc.text('Progreso > 70%', 30, yPosition + 5); // Texto al lado de la barra
+
+        // Dibujar la barra amarilla (36% - 70%)
+        doc.setFillColor(255, 255, 0); // Amarillo
+        doc.rect(14, yPosition + 10, 10, 5, 'F'); // Dibujar rectángulo amarillo
+        doc.text('Progreso entre 36% y 70%', 30, yPosition + 15); // Texto al lado de la barra
+
+        // Dibujar la barra roja (progreso < 35%)
+        doc.setFillColor(255, 0, 0); // Rojo
+        doc.rect(14, yPosition + 20, 10, 5, 'F'); // Dibujar rectángulo rojo
+        doc.text('Progreso < 35%', 30, yPosition + 25); // Texto al lado de la barra
+
+        doc.addPage();
+        // Agregar Observaciones
+        doc.setFontSize(16);
+        const title4 = 'Observaciones';
+        const title4Width = doc.getTextWidth(title4);
+        doc.text(title4, (pageWidth - title4Width) / 2, 20);
+        doc.setFontSize(12);
+
+        yPosition = 30; // Posición inicial para el primer texto de observación
+
+        @foreach($observations as $observation)
+            // Agregar cada observación
+            doc.text(`- {{ $observation->answer }}`, 14, yPosition);
+            yPosition += 10; // Incrementar la posición Y para la siguiente observación
+        @endforeach
+
+        // Agregar un título para las imágenes
+        doc.setFontSize(16);
+        const imagesTitleY = yPosition + 10; // Posicionar título para imágenes
+        const title5 = 'Imágenes de Observaciones';
+        const title5Width = doc.getTextWidth(title5);
+        doc.text(title5, (pageWidth - title5Width) / 2, imagesTitleY); // Título de imágenes
+        let imageY = imagesTitleY + 10; // Posición inicial para las imágenes
+
+        // Cargar todas las imágenes de manera asíncrona
+        const imagePromises = @json($images).map(async (image) => {
+            const imgSrc = "{{ asset('storage') }}" + "/" + image.path;  // Cambia esto según tu estructura
+            const img = await loadImage(imgSrc);
+            doc.addImage(img, 'JPEG', 14, imageY, 50, 50);
+            imageY += 60; // Espacio entre imágenes
+        });
+        // Esperar a que todas las imágenes se carguen
+        await Promise.all(imagePromises);
+        // Guardar el PDF
+        doc.save('Resultado_Evaluacion.pdf');
+    }
 
     const recordId = @json($recordId); 
+    async function exportToPDFAndSendEmail() {
+        const { jsPDF } = window.jspdf;
+        const logoUrl = '{{ asset('vendor/adminlte/dist/img/logo_1.png') }}';
+        const currentDate = new Date().toLocaleDateString();
 
-    //Exportar la pagina en pdf y enviarla por correo 
-    function exportToPDFAndSendEmail() {
-        html2canvas(document.querySelector(".container"), {
-            willReadFrequently: true  // Mejora el rendimiento en operaciones de lectura
-        }).then(canvas => {
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
-            const margin = 10; // Definir el tamaño del margen en puntos
-            const imgWidth = 200 - 2 * margin; // Restar los márgenes de la anchura de la página
-            const pageHeight = 293 - 2 * margin; // Restar los márgenes de la altura de la página
-            const imgHeight = canvas.height * imgWidth / canvas.width;
-            let heightLeft = imgHeight;
+        // Crea una instancia de jsPDF
+        const doc = new jsPDF();
+        const pageWidth = doc.internal.pageSize.width;
 
-            // Agregar la imagen al PDF
-            pdf.addImage(imgData, 'PNG', margin, margin, imgWidth, imgHeight);
-            heightLeft -= pageHeight;
+        // Agregar logo
+        doc.addImage(logoUrl, 'PNG', 10, 10, 30, 30);
 
-            while (heightLeft >= 0) {
-                position = heightLeft - imgHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
-            }
+        // Información del hotel
+        doc.setFontSize(10);
+        doc.text('Nombre del Hotel: {{ $hotelName }}', 50, 20);
+        doc.text('Gerente: {{ $managerName }}', 50, 30);
+        doc.text('Fecha de Expedición: ' + currentDate, 50, 40);
 
-            // Convertir PDF a Blob para enviarlo
-            const pdfBlob = pdf.output('blob');
-            const formData = new FormData();
-            formData.append('pdf', pdfBlob, 'Resultado_evaluacion.pdf');
+        // Agrega un título
+        doc.setFontSize(20);
+        const title = 'Resultados de la Evaluación';
+        const titleWidth = doc.getTextWidth(title);
+        doc.text(title, (pageWidth - titleWidth) / 2, 55);
 
-            // Enviar el PDF al servidor
-            fetch(`/sendresults/${recordId}`, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    $('#emailSentModal').modal('show');
+        const score = {{ $totalScore }};
+        const total = score.toFixed(2);
+        doc.setFontSize(20);
+        doc.setFont('Arial', 'bold'); 
+        doc.setTextColor(188,147,83);
+        doc.text(`Puntaje Total: ${total}`, 14, 70);
+
+        doc.setFontSize(12);      
+        doc.setFont('Helvetica', 'normal');   
+        doc.setTextColor(0, 0, 0);
+
+        // Detalles por Sistema
+        doc.setFontSize(16);
+        const title2 = 'Detalles por Sistema';
+        const title2Width = doc.getTextWidth(title2);
+        doc.text(title2, (pageWidth - title2Width) / 2, 85);
+
+        // Títulos de la tabla
+        doc.setFontSize(12);
+        const col = ["Sistema", "Preguntas Totales", "Respuestas Correctas", "Puntaje"];
+        const rows = [];
+
+        // Agregar datos a las filas
+        @foreach ($scoresBySystem as $systemId => $score)
+            rows.push(["{{ $score['systemName'] }}", "{{ $score['totalQuestions'] }}", "{{ $score['correctAnswers'] }}", "{{ number_format($score['score'], 2) }}"]);
+        @endforeach
+
+        // Configuración de la tabla
+        doc.autoTable({
+            head: [col],
+            body: rows,
+            startY: 90,
+            theme: 'grid',
+            headStyles: { fillColor: [45, 45, 45], textColor: [255, 255, 255] }
+        });
+
+        // Agregar Progreso por Sistema
+        doc.addPage();
+        doc.setFontSize(16);
+        const title3 = 'Progreso por Sistema';
+        const title3Width = doc.getTextWidth(title3);
+        doc.text(title3, (pageWidth - title3Width) / 2, 20);
+
+        doc.setFontSize(12);
+        let yPosition = 30;
+        const progressBarWidth = 150;
+        const progressBarHeight = 2;
+
+        @foreach ($scoresBySystem as $systemId => $score)
+            @php
+                $correctAnswers = $score['correctAnswers'];
+                $totalQuestions = $score['totalQuestions'];
+                $percentage = ($correctAnswers / $totalQuestions) * 100;
+                if ($percentage <= 35) {
+                    $progressColor = 'red';
+                } elseif ($percentage <= 70) {
+                    $progressColor = 'yellow';
                 } else {
-                    alert('Error al enviar el PDF.');
+                    $progressColor = 'green';
                 }
-            })
-            .catch(error => {
-                console.error('Error:', error);
+            @endphp
+
+            // Dibujar texto de progreso
+            doc.setFontSize(10);
+            doc.text(`{{ $score['systemName'] }}: {{ $score['correctAnswers'] }} / {{ $score['totalQuestions'] }}`, 14, yPosition);
+            
+            // Barra de progreso
+            doc.setFillColor("{{ $progressColor }}");
+            doc.rect(14, yPosition + 2, ({{ $percentage }} / 100) * progressBarWidth, progressBarHeight, 'F');
+            yPosition += 12;
+        @endforeach
+
+         // Agregar leyenda visual al final de la página
+         yPosition +=5; // Dar un poco de espacio antes de la leyenda
+
+        doc.setFontSize(10);
+        doc.setTextColor(0); // Negro para el texto
+
+        // Dibujar la barra verde (progreso > 70%)
+        doc.setFillColor(46, 182, 25); // Verde
+        doc.rect(14, yPosition, 10, 5, 'F'); // Dibujar rectángulo verde
+        doc.text('Progreso > 70%', 30, yPosition + 5); // Texto al lado de la barra
+
+        // Dibujar la barra amarilla (36% - 70%)
+        doc.setFillColor(255, 255, 0); // Amarillo
+        doc.rect(14, yPosition + 10, 10, 5, 'F'); // Dibujar rectángulo amarillo
+        doc.text('Progreso entre 36% y 70%', 30, yPosition + 15); // Texto al lado de la barra
+
+        // Dibujar la barra roja (progreso < 35%)
+        doc.setFillColor(255, 0, 0); // Rojo
+        doc.rect(14, yPosition + 20, 10, 5, 'F'); // Dibujar rectángulo rojo
+        doc.text('Progreso < 35%', 30, yPosition + 25); // Texto al lado de la barra
+
+        // Agregar Observaciones
+        doc.addPage();
+        doc.setFontSize(16);
+        const title4 = 'Observaciones';
+        const title4Width = doc.getTextWidth(title4);
+        doc.text(title4, (pageWidth - title4Width) / 2, 20);
+        doc.setFontSize(12);
+
+        yPosition = 30;
+        @foreach($observations as $observation)
+            doc.text(`- {{ $observation->answer }}`, 14, yPosition);
+            yPosition += 10;
+        @endforeach
+
+        // Agregar Imágenes de Observaciones
+        doc.setFontSize(16);
+        const title5 = 'Imágenes de Observaciones';
+        const title5Width = doc.getTextWidth(title5);
+        doc.text(title5, (pageWidth - title5Width) / 2, yPosition + 10);
+
+        let imageY = yPosition + 20;
+
+        const imagePromises = @json($images).map(async (image) => {
+            const imgSrc = "{{ asset('storage') }}" + "/" + image.path;
+            const img = await loadImage(imgSrc);
+            doc.addImage(img, 'JPEG', 14, imageY, 50, 50);
+            imageY += 60;
+        });
+
+        await Promise.all(imagePromises);
+
+        // Convertir PDF a Blob para enviar
+        const pdfBlob = doc.output('blob');
+        const formData = new FormData();
+        formData.append('pdf', pdfBlob, 'Resultado_evaluacion.pdf');
+
+        // Enviar el PDF al servidor
+        fetch(`/sendresults/${recordId}`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                $('#emailSentModal').modal('show');
+            } else {
                 alert('Error al enviar el PDF.');
-            });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al enviar el PDF.');
         });
     }
 
-    const button = document.querySelector('a[onclick="exportToPDFAndSendEmail()"]');
-    if (button) {
-        button.removeEventListener('click', exportToPDFAndSendEmail); // Elimina cualquier evento antiguo
-        button.addEventListener('click', exportToPDFAndSendEmail);
+     // Función para cargar imágenes
+    function loadImage(url) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error('Error al cargar la imagen: ' + url));
+            img.src = url;
+        });
     }
 
     //Mostrar mensaje de exito por 3 segundos 
